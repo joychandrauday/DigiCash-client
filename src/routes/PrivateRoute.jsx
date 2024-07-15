@@ -10,7 +10,7 @@ const PrivateRoute = ({ children }) => {
   const { data, error, isError, isLoading } = useQuery({
     queryKey: ['protectedContent'],
     queryFn: async () => {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/protected`, {
+      const response = await fetch(`http://localhost:8000/protected`, {
         method: 'GET',
         credentials: 'include',
       });

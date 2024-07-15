@@ -2,7 +2,7 @@ import { Outlet } from 'react-router-dom'
 const Main = () => {
   return (
     <div>
-      <div className='pt-24 min-h-[calc(100vh-68px)]'>
+      <div className='min-h-screen'>
         <Outlet />
       </div>
     </div>

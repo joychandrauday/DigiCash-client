@@ -28,7 +28,7 @@ const Login = () => {
       .then((res) => {
         if (res.data.token) {
           toast.success('You are signed in!!'); 
-          navigate(location?.state ? location.state : "/");
+          navigate("/");
         } else {
           toast.error('Login failed. Please check your credentials.'); // Notify user if login fails
         }

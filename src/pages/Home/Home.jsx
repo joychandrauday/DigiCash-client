@@ -1,28 +1,37 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
-import { useCookies } from "react-cookie";
 import { useState, useEffect } from "react";
-import useAxiosPublic from "../../hooks/useAxiosPublic";
 
 const Home = () => {
-  const [user, setUser] = useState(null);
-  const [cookies] = useCookies(["token"]);
-  const axiosPublic = useAxiosPublic();
+  const [user, setUser] = useState([]);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await axiosPublic.get("/user");
-        setUser(res.data);
+        const response = await fetch("http://localhost:8000/user", {
+          method: "GET",
+          credentials: "include", // Use 'credentials' instead of 'withCredentials'
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Fetched user data:", data); // Log fetched data
+        setUser(data);
       } catch (error) {
-        console.error('Error fetching user data:', error);
+        console.error("Error fetching user data:", error);
       }
     };
 
     fetchUser();
-  }, [axiosPublic]);
+  }, []);
 
-  console.log(user); // Log user data to debug
+  console.log("User state:", user); // Log user state to debug
 
   return (
     <div>
@@ -69,7 +78,9 @@ const Home = () => {
             {/* Balance Card */}
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-lg font-semibold mb-4">Account Balance</h2>
-              <p className="text-4xl font-bold text-blue-600">৳ 5000</p>
+              <p className="text-4xl font-bold text-blue-600">{
+                  user?.balance === 0 ? 'Your Registration is in under review': `৳ ${user.balance}`
+                }</p>
               <Link
                 to="/transactions"
                 className="text-blue-600 hover:text-blue-700 font-medium mt-2 block"
