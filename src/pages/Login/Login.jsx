@@ -2,9 +2,11 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import useAxiosPublic from "../../hooks/useAxiosPublic"; // Ensure this hook is correctly implemented
 import toast from "react-hot-toast"; // Assuming you are using react-hot-toast for notifications
+import { useLocation } from "react-router-dom";
 
 const Login = () => {
   const axiosPublic = useAxiosPublic(); // Assuming this hook is correctly configured
+  const location=useLocation()
   const {
     register,
     handleSubmit,
@@ -14,13 +16,17 @@ const Login = () => {
   const onSubmit = (data) => {
     const userInfo = {
       identifier: data.identifier,
-      password: data.password, 
+      pin: data.password, 
     };
 
     axiosPublic
-      .post('/users/login', userInfo)
+      .post('/users/login', userInfo,
+        {
+            withCredentials:true
+        }
+      )
       .then((res) => {
-        if (res.data.insertedId) {
+        if (res.data.token) {
           toast.success('You are signed in!!'); 
           navigate(location?.state ? location.state : "/");
         } else {
