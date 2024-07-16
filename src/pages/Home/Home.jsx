@@ -1,39 +1,36 @@
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import AdminComoinent from "./AdminComoinent";
 import UserComponent from "./UserComponent";
+import { FaSignOutAlt } from 'react-icons/fa';
+import useAxiosPublic from "../../hooks/useAxiosPublic";
+import toast from "react-hot-toast";
+import AdminComponent from './AdminComoinent';
+import useUser from "../../hooks/useUser";
 
 const Home = () => {
-  const [user, setUser] = useState([]);
+  
+  const axiosPublic = useAxiosPublic();
+  const user=useUser()
+  
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch("http://localhost:8000/user", {
-          method: "GET",
-          credentials: "include", // Use 'credentials' instead of 'withCredentials'
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(
-            `Network response was not ok: ${response.statusText}`
-          );
+  const handleLogout = () => {
+    axiosPublic.get('/logout', { withCredentials: true })
+      .then((res) => {
+        if (res.data.success) {
+          toast.success("You are logged out.");
+          // Redirect to login or homepage after logout
+          window.location.href = '/';
+        } else {
+          toast.error("Something went wrong.");
         }
+      })
+      .catch((error) => {
+        toast.error("Something went wrong");
+        console.error(error);
+      });
+  };
 
-        const data = await response.json();
-        console.log("Fetched user data:", data); // Log fetched data
-        setUser(data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    fetchUser();
-  }, []);
   const admin = user.role === "admin";
   const agent = user.role === "agent";
 
@@ -54,9 +51,8 @@ const Home = () => {
             <div className="bg-white w-1/6 rounded px-4">
               <img
                 src="https://i.ibb.co/G3rfDHB/digicash-main-logo-1-2.png"
-                className="w-full
-                "
-                alt=""
+                className="w-full"
+                alt="DigiCash Logo"
               />
             </div>
           </div>
@@ -64,9 +60,23 @@ const Home = () => {
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8">
-          {(admin && <AdminComoinent user={user} />) ||
-            (agent && <div>agent</div>) || <UserComponent user={user} />}
+          {admin ? (
+            <AdminComponent user={user} />
+          ) : agent ? (
+            <div>Agent</div>
+          ) : (
+            <UserComponent user={user} />
+          )}
         </main>
+        <div className="wrap flex items-center justify-center">
+          <button 
+            className="relative flex items-center px-4 py-2 font-semibold text-white transition-transform duration-300 bg-blue-500 rounded hover:bg-blue-700 group hover:scale-105 border-none" 
+            onClick={handleLogout}
+          >
+            <span className="group-hover:mr-2">Sign Out</span>
+            <FaSignOutAlt className="absolute right-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+          </button>
+        </div>
       </div>
     </div>
   );

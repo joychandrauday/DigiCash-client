@@ -2,11 +2,12 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import useAxiosPublic from "../../hooks/useAxiosPublic"; // Ensure this hook is correctly implemented
 import toast from "react-hot-toast"; // Assuming you are using react-hot-toast for notifications
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Login = () => {
   const axiosPublic = useAxiosPublic(); // Assuming this hook is correctly configured
   const location=useLocation()
+  const navigate=useNavigate()
   const {
     register,
     handleSubmit,

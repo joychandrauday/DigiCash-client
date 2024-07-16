@@ -1,5 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import SendMoneyForm from "../../components/SendMoneyForm";
+import CashoutForm from "../../components/CashoutForm";
 
 const UserComponent = ({ user }) => {
   return (
@@ -7,7 +9,9 @@ const UserComponent = ({ user }) => {
       {/* Profile Card */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold mb-4">{user.role} Dashboard</h2>
-        <h2 className="text-2xl font-bold mb-4">Welcome {user.role},{user.name}</h2>
+        <h2 className="text-2xl font-bold mb-4">
+          Welcome {user.role},{user.name}
+        </h2>
       </div>
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <div className="bg-white rounded-lg shadow-md p-6">
@@ -33,7 +37,7 @@ const UserComponent = ({ user }) => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold mb-4">Account Balance</h2>
           <p className="text-4xl font-bold text-blue-600">
-            {user?.role === 'pending'
+            {user?.role === "pending"
               ? "Your Registration is in under review"
               : `৳ ${user.balance}`}
           </p>
@@ -50,32 +54,76 @@ const UserComponent = ({ user }) => {
           <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
           <ul className="space-y-2">
             <li>
-              <Link
-                to="/send-money"
+              {/* Open the modal using document.getElementById('ID').showModal() method */}
+              <button
                 className="text-blue-600 hover:text-blue-700 font-medium"
+                onClick={() =>
+                  document.getElementById("my_modal_1").showModal()
+                }
               >
                 Send Money
-              </Link>
+              </button>
+              <dialog id="my_modal_1" className="modal">
+                <div className="modal-box">
+                  <SendMoneyForm />
+                  <div className="modal-action">
+                    <form method="dialog">
+                      {/* if there is a button in form, it will close the modal */}
+                      <button className="btn">Close</button>
+                    </form>
+                  </div>
+                </div>
+              </dialog>
             </li>
             <li>
-              <Link
-                to="/cash-out"
+              <button
                 className="text-blue-600 hover:text-blue-700 font-medium"
+                onClick={() =>
+                  document.getElementById("my_modal_2").showModal()
+                }
               >
                 Cash Out
-              </Link>
+              </button>
+              <dialog id="my_modal_2" className="modal">
+                <div className="modal-box">
+                  <CashoutForm />
+                  <div className="modal-action">
+                    <form method="dialog">
+                      {/* if there is a button in form, it will close the modal */}
+                      <button className="btn">Close</button>
+                    </form>
+                  </div>
+                </div>
+              </dialog>
             </li>
             <li>
-              <Link
-                to="/balance-inquiry"
+              <button
                 className="text-blue-600 hover:text-blue-700 font-medium"
+                onClick={() =>
+                  document.getElementById("my_modal_1").showModal()
+                }
               >
-                Balance Inquiry
-              </Link>
+                Cash IN
+              </button>
+              <dialog id="my_modal_1" className="modal">
+                <div className="modal-box">
+                  <h3 className="font-bold text-lg">Hello!</h3>
+                  <p className="py-4">
+                    Press ESC key or click the button below to close
+                  </p>
+                  <div className="modal-action">
+                    <form method="dialog">
+                      {/* if there is a button in form, it will close the modal */}
+                      <button className="btn">Close</button>
+                    </form>
+                  </div>
+                </div>
+              </dialog>
             </li>
           </ul>
         </div>
       </div>
+      
     </div>
   );
 };
