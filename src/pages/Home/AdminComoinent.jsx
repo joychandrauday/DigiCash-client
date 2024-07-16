@@ -1,13 +1,25 @@
 import React, { useEffect, useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import useAxiosPublic from "../../hooks/useAxiosPublic";
+import toast from "react-hot-toast";
+import useTransaction from "../../hooks/useTransaction";
+import Swal from "sweetalert2";
 
-const AdminComponent = ({user}) => {
+const AdminComponent = ({ user }) => {
   // Example data (replace with actual data from your API or state)
   const totalTransactions = 500;
   const totalAgents = 20;
   const [totalUsers, setTotalUsers] = useState([]);
-  const [transactionData, setTransactionData] = useState([]);
-
+  const axiosPublic = useAxiosPublic();
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -20,7 +32,9 @@ const AdminComponent = ({user}) => {
         });
 
         if (!response.ok) {
-          throw new Error(`Network response was not ok: ${response.statusText}`);
+          throw new Error(
+            `Network response was not ok: ${response.statusText}`
+          );
         }
 
         const data = await response.json();
@@ -34,38 +48,8 @@ const AdminComponent = ({user}) => {
     fetchUsers();
   }, []);
 
-  useEffect(() => {
-    // Replace with actual API call to fetch transaction data by day
-    const fetchTransactionData = async () => {
-      try {
-        const response = await fetch("http://localhost:8000/transactions", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Network response was not ok: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log("Fetched transaction data:", data); // Log fetched data
-        // Example: Transform data to daily transaction amounts
-        const dailyTransactions = data.map((transaction) => ({
-          date: transaction.date, // Assuming you have a date field in your transaction data
-          amount: transaction.amount,
-        }));
-        setTransactionData(dailyTransactions);
-      } catch (error) {
-        console.error("Error fetching transaction data:", error);
-      }
-    };
-
-    fetchTransactionData();
-  }, []);
-
+  const transactionData = useTransaction();
+  console.log(transactionData);
   // Function to handle section toggling
   const [activeSection, setActiveSection] = useState("users"); // Default active section
 
@@ -75,39 +59,118 @@ const AdminComponent = ({user}) => {
 
   // Example data for the bar chart
   const chartData = [
-    { name: 'Red', uv: 12, pv: 2400, amt: 2400 },
-    { name: 'Blue', uv: 19, pv: 4567, amt: 4567 },
-    { name: 'Yellow', uv: 3, pv: 1398, amt: 1398 },
-    { name: 'Green', uv: 5, pv: 9800, amt: 9800 },
-    { name: 'Purple', uv: 2, pv: 3908, amt: 3908 },
-    { name: 'Orange', uv: 3, pv: 4800, amt: 4800 },
+    { name: "Red", uv: 12, pv: 2400, amt: 2400 },
+    { name: "Blue", uv: 19, pv: 4567, amt: 4567 },
+    { name: "Yellow", uv: 3, pv: 1398, amt: 1398 },
+    { name: "Green", uv: 5, pv: 9800, amt: 9800 },
+    { name: "Purple", uv: 2, pv: 3908, amt: 3908 },
+    { name: "Orange", uv: 3, pv: 4800, amt: 4800 },
   ];
+  const handleAprove = (mobile) => {
+    axiosPublic
+      .patch(`/users/${mobile}`, { withCredentials: true })
+      .then((res) => {
+        console.log(res);
+        if (res.status === 200) {
+          toast.success("User approved successfully.");
+        } else {
+          toast.error("Something went wrong.");
+        }
+      })
+      .catch((error) => {
+        toast.error("Something went wrong");
+        console.error(error);
+      });
+  };
+  const handleAgent = (mobile) => {
+    console.log(mobile);
+    axiosPublic
+      .patch(`/agent/${mobile}`, { withCredentials: true })
+      .then((res) => {
+        console.log(res);
+        if (res.status === 200) {
+          toast.success("User approved successfully.");
+        } else {
+          toast.error("Something went wrong.");
+        }
+      })
+      .catch((error) => {
+        toast.error("Something went wrong");
+        console.error(error);
+      });
+  };
+
+  const handleDelete = (mobile) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosPublic
+          .delete(`/user/${mobile}`)
+          .then((res) => {
+            if (res.data.deletedCount > 0) {
+              Swal.fire({
+                title: "Deleted!",
+                text: "the user has been deleted.",
+                icon: "success",
+              });
+              window.reload()
+            } else {
+              Swal.fire({
+                title: "Error",
+                text: "Some Error occured.",
+                icon: "error",
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("Error deleting book:", error);
+            Swal.fire({
+              title: "Error",
+              text: "An error occurred while deleting the book.",
+              icon: "error",
+            });
+          });
+      }
+    });
+  };
 
   return (
     <div className="container mx-auto p-4">
       {/* Admin Dashboard Section */}
       <section className="text-primary p-6 rounded-lg shadow-lg">
         <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
-        <h2 className="text-2xl font-bold mb-4">Welcome Admin,{user.name}</h2>
-
+          <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
+          <h2 className="text-2xl font-bold mb-4">Welcome Admin,{user.name}</h2>
         </div>
         {/* Toggle Buttons */}
         <div className="mb-4">
           <button
-            className={`btn ${activeSection === "users" ? "btn-primary" : "btn-secondary"} mr-2`}
+            className={`btn ${
+              activeSection === "users" ? "btn-primary" : "btn-secondary"
+            } mr-2`}
             onClick={() => handleSectionToggle("users")}
           >
             Users
           </button>
           <button
-            className={`btn ${activeSection === "transactions" ? "btn-primary" : "btn-secondary"} mr-2`}
+            className={`btn ${
+              activeSection === "transactions" ? "btn-primary" : "btn-secondary"
+            } mr-2`}
             onClick={() => handleSectionToggle("transactions")}
           >
             Transactions
           </button>
           <button
-            className={`btn ${activeSection === "overview" ? "btn-primary" : "btn-secondary"}`}
+            className={`btn ${
+              activeSection === "overview" ? "btn-primary" : "btn-secondary"
+            }`}
             onClick={() => handleSectionToggle("overview")}
           >
             Overview
@@ -145,12 +208,31 @@ const AdminComponent = ({user}) => {
                       <span className="badge badge-primary">{user.role}</span>
                     </td>
                     <td className="flex gap-5">
-                      {
-                        user.isAgent && <button className="btn-sm btn">make agent</button> || user.role === 'pending' && <button className="btn-sm btn">Approve</button> || user.role === 'agent' && <button className="btn-sm btn">Make Agent</button>
-                      }
-                      {
-                        <button className="btn-sm btn">Delete user</button>
-                      }
+                      {user.isAgent && user.role === 'user' && (
+                        <button
+                          disabled={user.role === 'agent' }
+                          className="btn-sm btn"
+                          onClick={() => handleAgent(user.mobile)}
+                        >
+                          Make Agent
+                        </button>
+                      )}
+
+                      {user.role === "pending" && (
+                        <button
+                          className="btn-sm btn"
+                          onClick={() => handleAprove(user.mobile)}
+                        >
+                          Approve
+                        </button>
+                      )}
+                      <button
+                        disabled={user.role === "admin"}
+                        className="btn-sm btn"
+                        onClick={() => handleDelete(user.mobile)}
+                      >
+                        Delete User
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -166,7 +248,10 @@ const AdminComponent = ({user}) => {
             <ul className="divide-y divide-gray-200">
               {/* Example transaction item */}
               {transactionData.map((transaction, index) => (
-                <li key={index} className="py-4 flex justify-between items-center">
+                <li
+                  key={index}
+                  className="py-4 flex justify-between items-center"
+                >
                   <div className="flex flex-col">
                     <span className="text-lg font-semibold">
                       Transaction ID: {index + 1}

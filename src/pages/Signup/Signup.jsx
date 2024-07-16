@@ -5,8 +5,8 @@ import toast from "react-hot-toast"; // Assuming you are using react-hot-toast f
 import { useNavigate } from "react-router-dom";
 
 const Registration = () => {
-  const axiosPublic = useAxiosPublic(); 
-  const navigate=useNavigate()
+  const axiosPublic = useAxiosPublic();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -17,32 +17,32 @@ const Registration = () => {
   const onSubmit = async (data) => {
     const { name, pin, mobile, email, isAgent } = data;
 
-    
-
     const userInfo = {
       name,
       pin,
       mobile,
       email,
-      role: 'pending',
+      role: "pending",
       isAgent,
     };
     console.log(userInfo);
     axiosPublic
-      .post('/users/register', userInfo)
+      .post("/users/register", userInfo)
       .then((res) => {
         console.log(res.data);
         if (res.data.user) {
-          toast.success('Registration successful! Please wait for admin approval.'); 
-          
-          navigate('/login')
+          toast.success(
+            "Registration successful! Please wait for admin approval."
+          );
+
+          navigate("/login");
         } else {
-          toast.error('Registration failed. Please try again later.'); // Notify user if registration fails
+          toast.error("Registration failed. Please try again later."); // Notify user if registration fails
         }
       })
       .catch((error) => {
-        toast.error('Something went wrong');
-        console.error(error); 
+        toast.error("Email or Phone number is already in use.");
+        console.error(error);
       });
   };
 
@@ -60,10 +60,7 @@ const Registration = () => {
               Register to Get Started
             </h2>
           </div>
-          <form
-            className="mt-8 space-y-3"
-            onSubmit={handleSubmit(onSubmit)}
-          >
+          <form className="mt-8 space-y-3" onSubmit={handleSubmit(onSubmit)}>
             <input
               type="text"
               id="name"
@@ -74,12 +71,10 @@ const Registration = () => {
               required
             />
             {errors.name && (
-              <p className="mt-2 text-sm text-red-500">
-                {errors.name.message}
-              </p>
+              <p className="mt-2 text-sm text-red-500">{errors.name.message}</p>
             )}
             <input
-              type="text"
+              type="password"
               id="pin"
               {...register("pin", {
                 required: "PIN is required",
@@ -94,18 +89,29 @@ const Registration = () => {
               required
             />
             {errors.pin && (
-              <p className="mt-2 text-sm text-red-500">
-                {errors.pin.message}
-              </p>
+              <p className="mt-2 text-sm text-red-500">{errors.pin.message}</p>
             )}
             <input
-              type="text"
+              type="number"
               id="mobile"
-              {...register("mobile", { required: "Mobile Number is required" })}
+              {...register("mobile", {
+                required: "Mobile Number is required",
+                minLength: {
+                  value: 11,
+                  message: "Mobile Number must be 11 digits",
+                },
+                maxLength: {
+                  value: 11,
+                  message: "Mobile Number must be 11 digits",
+                },
+                pattern: {
+                  value: /^[0-9]{11}$/,
+                  message: "Mobile Number must contain only digits",
+                },
+              })}
               autoComplete="mobile"
               className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm mt-4 bg-gray-800"
               placeholder="Mobile Number"
-              required
             />
             {errors.mobile && (
               <p className="mt-2 text-sm text-red-500">
@@ -139,7 +145,10 @@ const Registration = () => {
                 {...register("isAgent")}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label htmlFor="isAgent" className="ml-2 block text-sm text-gray-400">
+              <label
+                htmlFor="isAgent"
+                className="ml-2 block text-sm text-gray-400"
+              >
                 Join as Agent
               </label>
             </div>

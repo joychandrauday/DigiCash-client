@@ -1,26 +1,26 @@
-import React, { useEffect } from 'react';
-import PropTypes from 'prop-types';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect } from "react";
+import PropTypes from "prop-types";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 
 const PrivateRoute = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
   const { data, error, isError, isLoading } = useQuery({
-    queryKey: ['protectedContent'],
+    queryKey: ["protectedContent"],
     queryFn: async () => {
       const response = await fetch(`http://localhost:8000/protected`, {
-        method: 'GET',
-        credentials: 'include',
+        method: "GET",
+        credentials: "include",
       });
 
       if (response.status === 401) {
-        throw new Error('Unauthorized'); // Throw an error for handling in useEffect
+        throw new Error("Unauthorized"); // Throw an error for handling in useEffect
       }
 
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error("Network response was not ok");
       }
 
       return response.json();
@@ -29,23 +29,27 @@ const PrivateRoute = ({ children }) => {
 
   useEffect(() => {
     if (isError) {
-      if (error.message === 'Unauthorized') {
-        navigate('/login');
+      if (error.message === "Unauthorized") {
+        navigate("/login");
       } else {
-        console.error('Error fetching protected content:', error);
+        console.error("Error fetching protected content:", error);
       }
     }
   }, [isError, error, navigate]);
 
   if (isLoading) {
-    return <h1>loading...</h1>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <span className="loading loading-spinner loading-md"></span>
+      </div>
+    );
   }
 
   if (data) {
     return children;
   }
 
-  return <Navigate to='/login' state={{ from: location }} replace />;
+  return <Navigate to="/login" state={{ from: location }} replace />;
 };
 
 PrivateRoute.propTypes = {
