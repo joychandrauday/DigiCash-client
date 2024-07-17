@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import useUser from "../hooks/useUser";
 import useAxiosPublic from "../hooks/useAxiosPublic";
 import toast from "react-hot-toast";
+import useAgent from "../hooks/useAgents";
 
 const CashoutForm = () => {
   const [amount, setAmount] = useState("");
@@ -13,23 +14,26 @@ const CashoutForm = () => {
   const [isRecipientValid, setIsRecipientValid] = useState(false);
   const user = useUser();
   const axiosPublic = useAxiosPublic();
+  const agents = useAgent(); // Fetch the agents
+
   // Calculate the total amount with fee
   const handleAmountChange = (e) => {
     const amountValue = parseFloat(e.target.value);
     setAmount(amountValue);
-    const fee = amountValue * 0.015; // Calculate fee (1.5% of amount)
+    const fee = amountValue * 0.015;
     const totalAmountValue = amountValue + fee;
     setAmount(amountValue);
     setTotalAmount(totalAmountValue.toFixed(2));
   };
 
   const handleRecipientChange = async (e) => {
-    setRecipient(e.target.value);
+    const selectedRecipient = e.target.value;
+    setRecipient(selectedRecipient);
 
-    if (e.target.value) {
+    if (selectedRecipient) {
       try {
         const response = await fetch(
-          `http://localhost:8000/user/${e.target.value}`,
+          `http://localhost:8000/user/${selectedRecipient}`,
           {
             method: "GET",
             credentials: "include",
@@ -66,12 +70,15 @@ const CashoutForm = () => {
       setError("Transaction amount must be at least 50 Taka.");
       return;
     }
+    if (amount >  user.balance) {
+      setError("you do not have enough");
+      return;
+    }
 
     if (!isRecipientValid) {
       setError("Invalid recipient. Please check the recipient's username.");
       return;
     }
-
     // Gather all data in an object
     const transactionData = {
       mobile: user?.mobile,
@@ -79,16 +86,16 @@ const CashoutForm = () => {
       amount,
       pin,
       totalAmount,
-      method: "send-money", // Assuming you want to specify the method
+      method: "cashout",
     };
-    console.log(transactionData);
+
     axiosPublic
       .post("/transactions", transactionData, {
         withCredentials: true,
       })
       .then((res) => {
         if (res.data) {
-          toast.success("transaction successfull...");
+          toast.success("Transaction successful...");
         } else {
           toast.error("Transaction failed. Please check your credentials."); // Notify user if login fails
         }
@@ -97,6 +104,7 @@ const CashoutForm = () => {
         toast.error("Something went wrong");
         console.error(error);
       });
+
     setAmount("");
     setRecipient("");
     setPin("");
@@ -113,17 +121,23 @@ const CashoutForm = () => {
           className="block text-gray-700 text-sm font-bold mb-2"
           htmlFor="recipient"
         >
-          Enter an Agent Number
+          Select an Agent Number
         </label>
-        <input
-          type="text"
+        <select
           id="recipient"
           name="recipient"
           value={recipient}
           onChange={handleRecipientChange}
           required
           className="input input-bordered w-full"
-        />
+        >
+          <option value="">Select an Agent</option>
+          {agents.map((agent) => (
+            <option key={agent.mobile} value={agent.mobile}>
+              {agent.name} - {agent.mobile}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="mb-4">
         <label

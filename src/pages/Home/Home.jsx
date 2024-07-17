@@ -7,6 +7,7 @@ import useAxiosPublic from "../../hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 import AdminComponent from './AdminComoinent';
 import useUser from "../../hooks/useUser";
+import AgentComponent from "./AgentComponent";
 
 const Home = () => {
   
@@ -63,9 +64,9 @@ const Home = () => {
           {admin ? (
             <AdminComponent user={user} />
           ) : agent ? (
-            <div>Agent</div>
+            <AgentComponent/>
           ) : (
-            <UserComponent user={user} />
+            <UserComponent />
           )}
         </main>
         <div className="wrap flex items-center justify-center">
