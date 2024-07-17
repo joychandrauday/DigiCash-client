@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SendMoneyForm from "../../components/SendMoneyForm";
 import CashoutForm from "../../components/CashoutForm";
 import useUser from "../../hooks/useUser";
+import CashinFormReq from "../../components/CashInFormReq";
 
 const UserComponent = () => {
   const [transaction, setTransaction] = useState([]);
@@ -157,17 +158,14 @@ const UserComponent = () => {
               <button
                 className="text-blue-600 hover:text-blue-700 font-medium"
                 onClick={() =>
-                  document.getElementById("my_modal_1").showModal()
+                  document.getElementById("my_modal_cashin").showModal()
                 }
               >
                 Cash IN
               </button>
-              <dialog id="my_modal_1" className="modal">
+              <dialog id="my_modal_cashin" className="modal">
                 <div className="modal-box">
-                  <h3 className="font-bold text-lg">Hello!</h3>
-                  <p className="py-4">
-                    Press ESC key or click the button below to close
-                  </p>
+                  <CashinFormReq />
                   <div className="modal-action">
                     <form method="dialog">
                       <button className="btn">Close</button>

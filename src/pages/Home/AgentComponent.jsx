@@ -1,10 +1,81 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import SendMoneyForm from "../../components/SendMoneyForm";
 import CashoutForm from "../../components/CashoutForm";
-import useUser from '../../hooks/useUser'
+import useUser from "../../hooks/useUser";
+import CashinForm from "../../components/CashinForm";
+import toast from "react-hot-toast";
+import useAxiosPublic from "../../hooks/useAxiosPublic";
 const AgentComponent = () => {
-  const user=useUser()
+  const [transaction, setTransaction] = useState([]);
+  const user = useUser();
+  console.log(transaction);
+  const axiosPublic=useAxiosPublic()
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8000/transactions-agent/${user.mobile}`,
+          {
+            method: "GET",
+            credentials: "include", // Use 'credentials' instead of 'withCredentials'
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(
+            `Network response was not ok: ${response.statusText}`
+          );
+        }
+
+        const data = await response.json();
+        console.log("Fetched user data:", data);
+
+        // Sort the transactions by timestamp in descending order
+        const sortedTransactions = data.sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+        );
+
+        setTransaction(sortedTransactions);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUser();
+  }, [user.mobile]);
+
+  const latestTransaction = transaction[0];
+  const handleApproveCash = (id,amount) => {
+    // Validate the transaction amount
+    if (user.balance < amount) {
+      toast("Transaction amount must be at least 50 Taka.");
+      return;
+    }
+    const approvalCredit = {
+      requestId: id , 
+      agentMobile: user.mobile
+    }
+    axiosPublic
+      .post("/approve-cashin", approvalCredit, {
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data) {
+          toast.success("transaction successfull...");
+          window.reload();
+        } else {
+          toast.error("Transaction failed. Please check your credentials."); // Notify user if login fails
+        }
+      })
+      .catch((error) => {
+        toast.error("Something went wrong");
+        console.error(error);
+      });
+  };
   return (
     <div className="">
       {/* Profile Card */}
@@ -44,20 +115,40 @@ const AgentComponent = () => {
           </p>
           <div>
             {latestTransaction ? (
-              <div key={latestTransaction._id} className="border p-4 mb-4">
-                {latestTransaction.method === 'send-money' && (
-                  <p className="badge badge-warning rounded-none">-৳ Send money</p>
-                ) || latestTransaction.method === 'cashout' && (
-                  <p className="badge badge-warning rounded-none">-৳ Cash Out</p>
-                ) || latestTransaction.method === 'cashin' && (
-                  <p className="badge badge-warning rounded-none">+৳ Cash In</p>
-                )}
+              <div
+                key={latestTransaction._id}
+                className="border p-4 mb-4 relative shadow shadow-gray-400"
+              >
+                {(latestTransaction.method === "send-money" && (
+                  <p className="badge badge-warning rounded-none absolute top-0 right-0">
+                    -৳ Send money
+                  </p>
+                )) ||
+                  (latestTransaction.method === "cashout" && (
+                    <p className="badge badge-warning rounded-none absolute top-0 right-0">
+                      +৳ Cash Out
+                    </p>
+                  )) ||
+                  (latestTransaction.method === "cashin" && (
+                    <p className="badge badge-warning rounded-none absolute top-0 right-0">
+                     -৳ Cash In
+                    </p>
+                  ))}
                 <h2>Last Transaction</h2>
                 <p>Transaction ID: {latestTransaction._id}</p>
                 <p>Amount: {latestTransaction.amount}</p>
-                <p>Receiver: {latestTransaction.recipient}</p>
+                <p>sender: {latestTransaction.mobile}</p>
                 <p>
                   Date: {new Date(latestTransaction.timestamp).toLocaleString()}
+                </p>
+                <p>
+                  {latestTransaction.status === "pending" ? (
+                    <button className="btn-sm border btn-warning bg-yellow-400" onClick={() => handleApproveCash(latestTransaction._id,latestTransaction.amount)}>
+                      approve
+                    </button>
+                  ) : (
+                    ""
+                  )}
                 </p>
               </div>
             ) : (
@@ -78,11 +169,11 @@ const AgentComponent = () => {
                   document.getElementById("my_modal_1").showModal()
                 }
               >
-                Send Money
+                Pay Bill
               </button>
               <dialog id="my_modal_1" className="modal">
                 <div className="modal-box">
-                  <SendMoneyForm />
+                  {/* <SendMoneyForm /> */}
                   <div className="modal-action">
                     <form method="dialog">
                       {/* if there is a button in form, it will close the modal */}
@@ -96,41 +187,16 @@ const AgentComponent = () => {
               <button
                 className="text-blue-600 hover:text-blue-700 font-medium"
                 onClick={() =>
-                  document.getElementById("my_modal_2").showModal()
+                  document.getElementById("my_modal_cashin").showModal()
                 }
               >
-                Cash Out
+                Cash In
               </button>
-              <dialog id="my_modal_2" className="modal">
+              <dialog id="my_modal_cashin" className="modal">
                 <div className="modal-box">
-                  <CashoutForm />
+                  <CashinForm />
                   <div className="modal-action">
                     <form method="dialog">
-                      {/* if there is a button in form, it will close the modal */}
-                      <button className="btn">Close</button>
-                    </form>
-                  </div>
-                </div>
-              </dialog>
-            </li>
-            <li>
-              <button
-                className="text-blue-600 hover:text-blue-700 font-medium"
-                onClick={() =>
-                  document.getElementById("my_modal_1").showModal()
-                }
-              >
-                Cash IN
-              </button>
-              <dialog id="my_modal_1" className="modal">
-                <div className="modal-box">
-                  <h3 className="font-bold text-lg">Hello!</h3>
-                  <p className="py-4">
-                    Press ESC key or click the button below to close
-                  </p>
-                  <div className="modal-action">
-                    <form method="dialog">
-                      {/* if there is a button in form, it will close the modal */}
                       <button className="btn">Close</button>
                     </form>
                   </div>
@@ -138,9 +204,101 @@ const AgentComponent = () => {
               </dialog>
             </li>
           </ul>
+          <div>
+            {latestTransaction ? (
+              <div
+                key={latestTransaction._id}
+                className="border p-4 mb-4 relative shadow shadow-gray-400"
+              >
+                {(latestTransaction.method === "send-money" && (
+                  <p className="badge badge-warning rounded-none absolute top-0 right-0">
+                    -৳ Send money
+                  </p>
+                )) ||
+                  (latestTransaction.method === "cashout" && (
+                    <p className="badge badge-warning rounded-none absolute top-0 right-0">
+                      +৳ Cash Out
+                    </p>
+                  )) ||
+                  (latestTransaction.method === "cashin" && (
+                    <p className="badge badge-warning rounded-none absolute top-0 right-0">
+                      -৳ Cash In
+                    </p>
+                  ))}
+                <h2>Last Transaction</h2>
+                <p>Transaction ID: {latestTransaction._id}</p>
+                <p>Amount: {latestTransaction.amount}</p>
+                <p>sender: {latestTransaction.mobile}</p>
+                <p>
+                  Date: {new Date(latestTransaction.timestamp).toLocaleString()}
+                </p>
+              </div>
+            ) : (
+              <p>No transactions available</p>
+            )}
+          </div>
+          <div className="">
+            <button
+              className="btn rounded-none bg-transparent border-none shadow-md mt-4"
+              onClick={() =>
+                document.getElementById("my_modal_trx").showModal()
+              }
+            >
+              ৳ View all Transactions
+            </button>
+            <dialog id="my_modal_trx" className="modal">
+              <div className="modal-box">
+                {transaction.map((trx) => (
+                  <div
+                    key={trx._id}
+                    className="bg-gray-300 mb-2 p-4 text-black rounded relative"
+                  >
+                    <p>Transaction ID: {trx._id}</p>
+                    <p>Amount: ৳ {trx.amount}</p>
+                    <p>Receiver: {trx.recipient}</p>
+                    <p>Date: {new Date(trx.timestamp).toLocaleString()}</p>
+                    <p>
+                      {trx.status === "pending" ? (
+                        <button
+                          className="btn-sm border btn-warning bg-yellow-400"
+                          onClick={() => handleApproveCash(trx._id,trx.amount)}
+                        >
+                          approve
+                        </button>
+                      ) : (
+                        ""
+                      )}
+                    </p>
+                    <div className="absolute top-0 right-0">
+                      {(trx.method === "send-money" && (
+                        <p className="badge badge-warning rounded-none">
+                          -৳ Send money
+                        </p>
+                      )) ||
+                        (trx.method === "cashout" && (
+                          <p className="badge badge-warning rounded-none">
+                            +৳ Cash Out
+                          </p>
+                        )) ||
+                        (trx.method === "cashin" && (
+                          <p className="badge badge-warning rounded-none">
+                            -৳ Cash In
+                          </p>
+                        ))}
+                    </div>
+                  </div>
+                ))}
+
+                <div className="modal-action">
+                  <form method="dialog">
+                    <button className="btn">Close</button>
+                  </form>
+                </div>
+              </div>
+            </dialog>
+          </div>
         </div>
       </div>
-      
     </div>
   );
 };

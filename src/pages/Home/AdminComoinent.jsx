@@ -8,18 +8,24 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
+import { Tabs, Tab, TabList, TabPanel } from "react-tabs";
+import "react-tabs/style/react-tabs.css";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 import useTransaction from "../../hooks/useTransaction";
 import Swal from "sweetalert2";
 
 const AdminComponent = ({ user }) => {
-  // Example data (replace with actual data from your API or state)
-  const totalTransactions = 500;
-  const totalAgents = 20;
   const [totalUsers, setTotalUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [filterMethod, setFilterMethod] = useState("all");
   const axiosPublic = useAxiosPublic();
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -40,6 +46,7 @@ const AdminComponent = ({ user }) => {
         const data = await response.json();
         console.log("Fetched user data:", data); // Log fetched data
         setTotalUsers(data);
+        setFilteredUsers(data);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -48,25 +55,24 @@ const AdminComponent = ({ user }) => {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    const result = totalUsers.filter((user) =>
+      user.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredUsers(result);
+  }, [searchQuery, totalUsers]);
+
   const transactionData = useTransaction();
   console.log(transactionData);
-  // Function to handle section toggling
-  const [activeSection, setActiveSection] = useState("users"); // Default active section
 
-  const handleSectionToggle = (section) => {
-    setActiveSection(section);
-  };
+  const filteredTransactionData =
+    filterMethod === "all"
+      ? transactionData
+      : transactionData.filter(
+          (transaction) => transaction.method === filterMethod
+        );
 
-  // Example data for the bar chart
-  const chartData = [
-    { name: "Red", uv: 12, pv: 2400, amt: 2400 },
-    { name: "Blue", uv: 19, pv: 4567, amt: 4567 },
-    { name: "Yellow", uv: 3, pv: 1398, amt: 1398 },
-    { name: "Green", uv: 5, pv: 9800, amt: 9800 },
-    { name: "Purple", uv: 2, pv: 3908, amt: 3908 },
-    { name: "Orange", uv: 3, pv: 4800, amt: 4800 },
-  ];
-  const handleAprove = (mobile) => {
+  const handleApprove = (mobile) => {
     axiosPublic
       .patch(`/users/${mobile}`, { withCredentials: true })
       .then((res) => {
@@ -82,6 +88,7 @@ const AdminComponent = ({ user }) => {
         console.error(error);
       });
   };
+
   const handleAgent = (mobile) => {
     console.log(mobile);
     axiosPublic
@@ -117,23 +124,23 @@ const AdminComponent = ({ user }) => {
             if (res.data.deletedCount > 0) {
               Swal.fire({
                 title: "Deleted!",
-                text: "the user has been deleted.",
+                text: "The user has been deleted.",
                 icon: "success",
               });
-              window.reload()
+              window.location.reload();
             } else {
               Swal.fire({
                 title: "Error",
-                text: "Some Error occured.",
+                text: "Some Error occurred.",
                 icon: "error",
               });
             }
           })
           .catch((error) => {
-            console.error("Error deleting book:", error);
+            console.error("Error deleting user:", error);
             Swal.fire({
               title: "Error",
-              text: "An error occurred while deleting the book.",
+              text: "An error occurred while deleting the user.",
               icon: "error",
             });
           });
@@ -141,162 +148,245 @@ const AdminComponent = ({ user }) => {
     });
   };
 
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleFilterChange = (method) => {
+    setFilterMethod(method);
+  };
+
+  const aggregateTransactionData = (transactions) => {
+    const aggregatedData = transactions.reduce((acc, transaction) => {
+      const date = new Date(transaction.timestamp).toLocaleDateString();
+      if (!acc[date]) {
+        acc[date] = 0;
+      }
+      acc[date] += transaction.amount;
+      return acc;
+    }, {});
+
+    return Object.keys(aggregatedData).map((date) => ({
+      date,
+      amount: aggregatedData[date],
+    }));
+  };
+
+  const aggregatedTransactionData = aggregateTransactionData(
+    filteredTransactionData
+  );
+
+  const aggregateMethodData = (transactions) => {
+    const methodCounts = transactions.reduce((acc, transaction) => {
+      if (!acc[transaction.method]) {
+        acc[transaction.method] = 0;
+      }
+      acc[transaction.method] += transaction.amount;
+      return acc;
+    }, {});
+
+    return Object.keys(methodCounts).map((method) => ({
+      name: method, // Add 'name' field with method name
+      value: methodCounts[method], // 'value' remains the amount
+    }));
+  };
+
+  const transactionsByMethod = aggregateMethodData(transactionData);
+
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
+
   return (
     <div className="container mx-auto p-4">
-      {/* Admin Dashboard Section */}
       <section className="text-primary p-6 rounded-lg shadow-lg">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
-          <h2 className="text-2xl font-bold mb-4">Welcome Admin,{user.name}</h2>
+          <h2 className="text-2xl font-bold mb-4">
+            Welcome Admin, {user.name}
+          </h2>
         </div>
-        {/* Toggle Buttons */}
-        <div className="mb-4">
-          <button
-            className={`btn ${
-              activeSection === "users" ? "btn-primary" : "btn-secondary"
-            } mr-2`}
-            onClick={() => handleSectionToggle("users")}
-          >
-            Users
-          </button>
-          <button
-            className={`btn ${
-              activeSection === "transactions" ? "btn-primary" : "btn-secondary"
-            } mr-2`}
-            onClick={() => handleSectionToggle("transactions")}
-          >
-            Transactions
-          </button>
-          <button
-            className={`btn ${
-              activeSection === "overview" ? "btn-primary" : "btn-secondary"
-            }`}
-            onClick={() => handleSectionToggle("overview")}
-          >
-            Overview
-          </button>
-        </div>
+        <Tabs>
+          <TabList>
+            <Tab>Users</Tab>
+            <Tab>Transactions</Tab>
+            <Tab>Overview</Tab>
+          </TabList>
 
-        {/* Conditional Rendering based on activeSection */}
-        {activeSection === "users" && (
-          <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-2">Manage Users</h3>
-            <div className="flex mb-4">
-              <input
-                type="text"
-                placeholder="Search user by name"
-                className="input input-bordered w-full max-w-xs mr-2"
-              />
-              <button className="btn btn-primary">Search</button>
-            </div>
-            <table className="table w-full">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* Example Row */}
-                {totalUsers.map((user) => (
-                  <tr key={user._id}>
-                    <td>{user.name}</td>
-                    <td>{user.email}</td>
-                    <td>
-                      <span className="badge badge-primary">{user.role}</span>
-                    </td>
-                    <td className="flex gap-5">
-                      {user.isAgent && user.role === 'user' && (
-                        <button
-                          disabled={user.role === 'agent' }
-                          className="btn-sm btn"
-                          onClick={() => handleAgent(user.mobile)}
-                        >
-                          Make Agent
-                        </button>
-                      )}
-
-                      {user.role === "pending" && (
-                        <button
-                          className="btn-sm btn"
-                          onClick={() => handleAprove(user.mobile)}
-                        >
-                          Approve
-                        </button>
-                      )}
-                      <button
-                        disabled={user.role === "admin"}
-                        className="btn-sm btn"
-                        onClick={() => handleDelete(user.mobile)}
-                      >
-                        Delete User
-                      </button>
-                    </td>
+          <TabPanel>
+            <div className="mb-6">
+              <h3 className="text-xl font-semibold mb-2">Manage Users</h3>
+              <div className="flex mb-4">
+                <input
+                  type="text"
+                  placeholder="Search user by name"
+                  className="input input-bordered w-full max-w-xs mr-2"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                />
+                <button className="btn btn-primary">Search</button>
+              </div>
+              <table className="table w-full">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {filteredUsers.map((user) => (
+                    <tr key={user._id}>
+                      <td>{user.name}</td>
+                      <td>{user.email}</td>
+                      <td>
+                        <span className="badge badge-primary">{user.role}</span>
+                      </td>
+                      <td className="flex gap-5">
+                        {user.isAgent && user.role === "user" && (
+                          <button
+                            disabled={user.role === "agent"}
+                            className="btn-sm btn"
+                            onClick={() => handleAgent(user.mobile)}
+                          >
+                            Make Agent
+                          </button>
+                        )}
 
-        {activeSection === "transactions" && (
-          <div>
-            <h3 className="text-xl font-semibold mb-2">Transaction History</h3>
-            {/* Transaction list */}
-            <ul className="divide-y divide-gray-200">
-              {/* Example transaction item */}
-              {transactionData.map((transaction, index) => (
-                <li
-                  key={index}
-                  className="py-4 flex justify-between items-center"
-                >
-                  <div className="flex flex-col">
-                    <span className="text-lg font-semibold">
-                      Transaction ID: {index + 1}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      Amount: ${transaction.amount.toFixed(2)}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      Date: {transaction.date}
-                    </span>
-                  </div>
-                  <div className="flex space-x-2">
-                    <span className="badge badge-primary">Successful</span>
-                    <button className="btn btn-sm btn-outline-primary">
-                      View Details
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {activeSection === "overview" && (
-          <div>
-            <h3 className="text-xl font-semibold mb-2">System Overview</h3>
-            <div className="mb-4">
-              {/* Recharts Bar Chart */}
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={transactionData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="amount" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
+                        {user.role === "pending" && (
+                          <button
+                            className="btn-sm btn"
+                            onClick={() => handleApprove(user.mobile)}
+                          >
+                            Approve
+                          </button>
+                        )}
+                        <button
+                          disabled={user.role === "admin"}
+                          className="btn-sm btn"
+                          onClick={() => handleDelete(user.mobile)}
+                        >
+                          Delete User
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            {/* Add other overview components here */}
-          </div>
-        )}
+          </TabPanel>
+
+          <TabPanel>
+            <div>
+              <h3 className="text-xl font-semibold mb-2">
+                Transaction History
+              </h3>
+              <div className="flex gap-4 mb-4">
+                <button
+                  className="btn btn-sm rounded-none text-warning"
+                  onClick={() => handleFilterChange("all")}
+                >
+                  All
+                </button>
+                <button
+                  className="btn btn-sm rounded-none text-warning"
+                  onClick={() => handleFilterChange("send-money")}
+                >
+                  Send Money
+                </button>
+                <button
+                  className="btn btn-sm rounded-none text-warning"
+                  onClick={() => handleFilterChange("cashout")}
+                >
+                  Cash Out
+                </button>
+                <button
+                  className="btn btn-sm rounded-none text-warning"
+                  onClick={() => handleFilterChange("cashin")}
+                >
+                  Cash In
+                </button>
+              </div>
+              <div className="divide-y grid grid-cols-3 gap-4 divide-gray-400">
+                {filteredTransactionData.map((transaction) => (
+                  <div key={transaction._id} className="py-2">
+                    <p className="text-xl text-primary font-bold">
+                      Amount: {transaction.amount}
+                    </p>
+                    <p>
+                      <span className="text-primary font-bold">Method:</span>{" "}
+                      {transaction.method}
+                    </p>
+                    <p>
+                      <span className="text-primary font-bold">Timestamp:</span>{" "}
+                      {new Date(transaction.timestamp).toLocaleString()}
+                    </p>
+                    <p>
+                      <span className="text-primary font-bold">Sender:</span>{" "}
+                      {transaction.sender}
+                    </p>
+                    <p>
+                      <span className="text-primary font-bold">Receiver:</span>{" "}
+                      {transaction.receiver}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </TabPanel>
+
+          <TabPanel>
+            <div className="flex justify-between flex-wrap">
+              <div className="w-1/2">
+                <h3 className="text-xl font-semibold mb-2">
+                  Daily Transaction Overview
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={aggregatedTransactionData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="amount" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="w-1/2">
+                <h3 className="text-xl font-semibold mb-2 text-center">
+                  All Transaction Overview
+                </h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={transactionsByMethod}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ payload }) => {
+                        if (!payload) return null; // Check if payload exists
+                        const { name, value, percent } = payload;
+                        return `${name}: ${(percent * 100).toFixed(0)}%`;
+                      }}
+                      outerRadius={120}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {transactionsByMethod.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </TabPanel>
+        </Tabs>
       </section>
     </div>
   );
