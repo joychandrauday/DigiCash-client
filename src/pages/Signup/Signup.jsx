@@ -1,49 +1,43 @@
 import React from "react";
 import { useForm } from "react-hook-form";
-import useAxiosPublic from "../../hooks/useAxiosPublic"; // Ensure this hook is correctly implemented
-import toast from "react-hot-toast"; // Assuming you are using react-hot-toast for notifications
+import useAxiosPublic from "../../hooks/useAxiosPublic";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { imageUpload } from "../../api/utils/index";
 
 const Registration = () => {
   const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-  } = useForm();
-
+  const { register, handleSubmit, formState: { errors } } = useForm();
+  
   const onSubmit = async (data) => {
-    const { name, pin, mobile, email, isAgent } = data;
+    const image = data.image[0];
+    try {
+      const { name, pin, mobile, email, isAgent } = data;
+      const imageUrl = await imageUpload(image);
 
-    const userInfo = {
-      name,
-      pin,
-      mobile,
-      email,
-      role: "pending",
-      isAgent,
-    };
-    console.log(userInfo);
-    axiosPublic
-      .post("/users/register", userInfo)
-      .then((res) => {
-        console.log(res.data);
-        if (res.data.user) {
-          toast.success(
-            "Registration successful! Please wait for admin approval."
-          );
+      const userInfo = {
+        name,
+        pin,
+        mobile,
+        email,
+        role: "pending",
+        isAgent,
+        image_url: imageUrl,
+      };
 
-          navigate("/login");
-        } else {
-          toast.error("Registration failed. Please try again later."); // Notify user if registration fails
-        }
-      })
-      .catch((error) => {
-        toast.error("Email or Phone number is already in use.");
-        console.error(error);
-      });
+      const response = await axiosPublic.post("/users/register", userInfo);
+
+      if (response.data.user) {
+        toast.success("Registration successful! Please wait for admin approval.");
+        navigate("/login");
+      } else {
+        toast.error("Registration failed. Please try again later.");
+      }
+    } catch (error) {
+      toast.error("Email or Phone number is already in use.");
+      console.error(error);
+    }
   };
 
   return (
@@ -55,24 +49,20 @@ const Registration = () => {
           alt="Digicash Logo"
         />
         <div className="space-y-8 text-black">
-          <div>
-            <h2 className="text-center text-3xl font-bold text-primary">
-              Register to Get Started
-            </h2>
-          </div>
+          <h2 className="text-center text-3xl font-bold text-primary">
+            Register to Get Started
+          </h2>
           <form className="mt-8 space-y-3" onSubmit={handleSubmit(onSubmit)}>
             <input
               type="text"
               id="name"
               {...register("name", { required: "Name is required" })}
               autoComplete="name"
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm bg-gray-800"
+              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-gray-800"
               placeholder="Full Name"
-              required
             />
-            {errors.name && (
-              <p className="mt-2 text-sm text-red-500">{errors.name.message}</p>
-            )}
+            {errors.name && <p className="mt-2 text-sm text-red-500">{errors.name.message}</p>}
+            
             <input
               type="password"
               id="pin"
@@ -84,13 +74,11 @@ const Registration = () => {
                 },
               })}
               autoComplete="off"
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm mt-4 bg-gray-800"
+              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm mt-4 bg-gray-800"
               placeholder="5-digit PIN"
-              required
             />
-            {errors.pin && (
-              <p className="mt-2 text-sm text-red-500">{errors.pin.message}</p>
-            )}
+            {errors.pin && <p className="mt-2 text-sm text-red-500">{errors.pin.message}</p>}
+            
             <input
               type="number"
               id="mobile"
@@ -110,14 +98,24 @@ const Registration = () => {
                 },
               })}
               autoComplete="mobile"
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm mt-4 bg-gray-800"
+              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm mt-4 bg-gray-800"
               placeholder="Mobile Number"
             />
-            {errors.mobile && (
-              <p className="mt-2 text-sm text-red-500">
-                {errors.mobile.message}
-              </p>
-            )}
+            {errors.mobile && <p className="mt-2 text-sm text-red-500">{errors.mobile.message}</p>}
+            
+            <div>
+              <label htmlFor="image" className="block mb-2 text-sm text-gray-400">
+                Select Image:
+              </label>
+              <input
+                type="file"
+                id="image"
+                {...register("image", { required: "Image is required" })}
+                accept="image/*"
+                className="file:border-none file:bg-blue-500 file:text-white"
+              />
+            </div>
+
             <input
               type="email"
               id="email"
@@ -129,15 +127,11 @@ const Registration = () => {
                 },
               })}
               autoComplete="email"
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm mt-4 bg-gray-800"
+              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm mt-4 bg-gray-800"
               placeholder="Email address"
-              required
             />
-            {errors.email && (
-              <p className="mt-2 text-sm text-red-500">
-                {errors.email.message}
-              </p>
-            )}
+            {errors.email && <p className="mt-2 text-sm text-red-500">{errors.email.message}</p>}
+            
             <div className="flex items-center mt-4">
               <input
                 type="checkbox"
@@ -145,36 +139,29 @@ const Registration = () => {
                 {...register("isAgent")}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label
-                htmlFor="isAgent"
-                className="ml-2 block text-sm text-gray-400"
-              >
+              <label htmlFor="isAgent" className="ml-2 block text-sm text-gray-400">
                 Join as Agent
               </label>
             </div>
-            <div className="flex items-center justify-between mt-6">
-              <div className="text-sm">
-                <p className="text-gray-400">
-                  Note: Your account will be pending until approved by admin.
-                </p>
-              </div>
-              <div className="text-sm">
-                <a
-                  href="/login"
-                  className="font-medium text-blue-600 hover:text-blue-500"
-                >
-                  sign in
-                </a>
-              </div>
-            </div>
-            <div>
-              <button
-                type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mt-6"
+
+            <div className="flex items-center justify-between mt-6 text-sm">
+              <p className="text-gray-400">
+                Note: Your account will be pending until approved by admin.
+              </p>
+              <a
+                href="/login"
+                className="font-medium text-blue-600 hover:text-blue-500"
               >
-                Register
-              </button>
+                Sign in
+              </a>
             </div>
+
+            <button
+              type="submit"
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mt-6"
+            >
+              Register
+            </button>
           </form>
         </div>
       </div>

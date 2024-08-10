@@ -30,7 +30,6 @@ const Login = () => {
         if (res.data.token) {
           toast.success('You are signed in!!'); 
           navigate("/");
-          window.reload()
         } else {
           toast.error('Login failed. Please check your credentials.'); // Notify user if login fails
         }

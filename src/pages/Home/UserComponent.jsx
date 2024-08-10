@@ -4,6 +4,7 @@ import SendMoneyForm from "../../components/SendMoneyForm";
 import CashoutForm from "../../components/CashoutForm";
 import useUser from "../../hooks/useUser";
 import CashinFormReq from "../../components/CashInFormReq";
+import Profile from "../../components/Profile";
 
 const UserComponent = () => {
   const [transaction, setTransaction] = useState([]);
@@ -67,11 +68,28 @@ const UserComponent = () => {
               <p className="text-gray-600 mb-2">Email: {user.email}</p>
               <p className="text-gray-600 mb-2">Mobile Number: {user.mobile}</p>
               <Link
-                to="/profile"
-                className="text-blue-600 hover:text-blue-700 font-medium mt-2 block"
+                onClick={() =>
+                  document.getElementById("my_modal_5").showModal()
+                }
+                className="btn rounded-none bg-transparent border-none shadow-md mt-4 text-primary"
               >
                 View Profile
               </Link>
+              {/* Open the modal using document.getElementById('ID').showModal() method */}
+              <dialog
+                id="my_modal_5"
+                className="modal modal-bottom sm:modal-middle"
+              >
+                <div className="modal-box">
+                  <Profile />
+                  <div className="modal-action">
+                    <form method="dialog">
+                      {/* if there is a button in form, it will close the modal */}
+                      <button className="btn">Close</button>
+                    </form>
+                  </div>
+                </div>
+              </dialog>
             </>
           ) : (
             <p>Loading profile information...</p>
@@ -89,13 +107,21 @@ const UserComponent = () => {
           <div>
             {latestTransaction ? (
               <div key={latestTransaction._id} className="border p-4 mb-4">
-                {latestTransaction.method === 'send-money' && (
-                  <p className="badge badge-warning rounded-none">-৳ Send money</p>
-                ) || latestTransaction.method === 'cashout' && (
-                  <p className="badge badge-warning rounded-none">-৳ Cash Out</p>
-                ) || latestTransaction.method === 'cashin' && (
-                  <p className="badge badge-warning rounded-none">+৳ Cash In</p>
-                )}
+                {(latestTransaction.method === "send-money" && (
+                  <p className="badge badge-warning rounded-none">
+                    -৳ Send money
+                  </p>
+                )) ||
+                  (latestTransaction.method === "cashout" && (
+                    <p className="badge badge-warning rounded-none">
+                      -৳ Cash Out
+                    </p>
+                  )) ||
+                  (latestTransaction.method === "cashin" && (
+                    <p className="badge badge-warning rounded-none">
+                      +৳ Cash In
+                    </p>
+                  ))}
                 <h2>Last Transaction</h2>
                 <p>Transaction ID: {latestTransaction._id}</p>
                 <p>Amount: {latestTransaction.amount}</p>
@@ -113,10 +139,10 @@ const UserComponent = () => {
         {/* Actions Card */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-          <ul className="space-y-2">
+          <ul className="flex space-x-2 text-warning">
             <li>
               <button
-                className="text-blue-600 hover:text-blue-700 font-medium"
+                className="btn rounded-none bg-transparent border-none shadow-md mt-4 text-primary"
                 onClick={() =>
                   document.getElementById("my_modal_1").showModal()
                 }
@@ -136,7 +162,7 @@ const UserComponent = () => {
             </li>
             <li>
               <button
-                className="text-blue-600 hover:text-blue-700 font-medium"
+                className="btn rounded-none bg-transparent border-none shadow-md mt-4 text-primary"
                 onClick={() =>
                   document.getElementById("my_modal_2").showModal()
                 }
@@ -156,7 +182,7 @@ const UserComponent = () => {
             </li>
             <li>
               <button
-                className="text-blue-600 hover:text-blue-700 font-medium"
+                className="btn rounded-none bg-transparent border-none shadow-md mt-4 text-primary"
                 onClick={() =>
                   document.getElementById("my_modal_cashin").showModal()
                 }
@@ -177,8 +203,10 @@ const UserComponent = () => {
           </ul>
           <div className="">
             <button
-              className="btn rounded-none bg-transparent border-none shadow-md mt-4"
-              onClick={() => document.getElementById("my_modal_trx").showModal()}
+              className="btn rounded-none border-none shadow-sm mt-4 bg-primary text-white shadow-gray-900"
+              onClick={() =>
+                document.getElementById("my_modal_trx").showModal()
+              }
             >
               ৳ View all Transactions
             </button>
@@ -194,13 +222,21 @@ const UserComponent = () => {
                     <p>Receiver: {trx.recipient}</p>
                     <p>Date: {new Date(trx.timestamp).toLocaleString()}</p>
                     <div className="absolute top-0 right-0">
-                      {trx.method === 'send-money' && (
-                        <p className="badge badge-warning rounded-none">-৳ Send money</p>
-                      ) || trx.method === 'cashout' && (
-                        <p className="badge badge-warning rounded-none">-৳ Cash Out</p>
-                      ) || trx.method === 'cashin' && (
-                        <p className="badge badge-warning rounded-none">+৳ Cash In</p>
-                      )}
+                      {(trx.method === "send-money" && (
+                        <p className="badge badge-warning rounded-none">
+                          -৳ Send money
+                        </p>
+                      )) ||
+                        (trx.method === "cashout" && (
+                          <p className="badge badge-warning rounded-none">
+                            -৳ Cash Out
+                          </p>
+                        )) ||
+                        (trx.method === "cashin" && (
+                          <p className="badge badge-warning rounded-none">
+                            +৳ Cash In
+                          </p>
+                        ))}
                     </div>
                   </div>
                 ))}

@@ -282,25 +282,25 @@ const AdminComponent = ({ user }) => {
               </h3>
               <div className="flex gap-4 mb-4">
                 <button
-                  className="btn btn-sm rounded-none text-warning"
+                  className="btn btn-sm rounded-none bg-black text-warning"
                   onClick={() => handleFilterChange("all")}
                 >
                   All
                 </button>
                 <button
-                  className="btn btn-sm rounded-none text-warning"
+                  className="btn btn-sm rounded-none bg-black text-warning"
                   onClick={() => handleFilterChange("send-money")}
                 >
                   Send Money
                 </button>
                 <button
-                  className="btn btn-sm rounded-none text-warning"
+                  className="btn btn-sm rounded-none bg-black text-warning"
                   onClick={() => handleFilterChange("cashout")}
                 >
                   Cash Out
                 </button>
                 <button
-                  className="btn btn-sm rounded-none text-warning"
+                  className="btn btn-sm rounded-none bg-black text-warning"
                   onClick={() => handleFilterChange("cashin")}
                 >
                   Cash In
@@ -308,9 +308,24 @@ const AdminComponent = ({ user }) => {
               </div>
               <div className="divide-y grid grid-cols-3 gap-4 divide-gray-400">
                 {filteredTransactionData.map((transaction) => (
-                  <div key={transaction._id} className="py-2">
+                  <div key={transaction._id} className="p-2 glass relative">
+                    {(transaction.method === "send-money" && (
+                      <p className="badge badge-warning rounded-none absolute right-2">
+                        -৳ Send money
+                      </p>
+                    )) ||
+                      (transaction.method === "cashout" && (
+                        <p className="badge badge-warning rounded-none absolute right-2">
+                          -৳ Cash Out
+                        </p>
+                      )) ||
+                      (transaction.method === "cashin" && (
+                        <p className="badge badge-warning rounded-none absolute right-2">
+                          +৳ Cash In
+                        </p>
+                      ))}
                     <p className="text-xl text-primary font-bold">
-                      Amount: {transaction.amount}
+                      Amount: {transaction.amount} ৳ 
                     </p>
                     <p>
                       <span className="text-primary font-bold">Method:</span>{" "}
@@ -322,11 +337,11 @@ const AdminComponent = ({ user }) => {
                     </p>
                     <p>
                       <span className="text-primary font-bold">Sender:</span>{" "}
-                      {transaction.sender}
+                      {transaction.mobile}
                     </p>
                     <p>
                       <span className="text-primary font-bold">Receiver:</span>{" "}
-                      {transaction.receiver}
+                      {transaction.recipient}
                     </p>
                   </div>
                 ))}
