@@ -6,8 +6,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 const Login = () => {
   const axiosPublic = useAxiosPublic(); // Assuming this hook is correctly configured
-  const location=useLocation()
-  const navigate=useNavigate()
+  const location = useLocation();
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -17,18 +17,16 @@ const Login = () => {
   const onSubmit = (data) => {
     const userInfo = {
       identifier: data.identifier,
-      pin: data.password, 
+      pin: data.password,
     };
 
     axiosPublic
-      .post('/users/login', userInfo,
-        {
-            withCredentials:true
-        }
-      )
+      .post('/users/login', userInfo, {
+        withCredentials: true,
+      })
       .then((res) => {
         if (res.data.token) {
-          toast.success('You are signed in!!'); 
+          toast.success('You are signed in!!');
           navigate("/");
         } else {
           toast.error('Login failed. Please check your credentials.'); // Notify user if login fails
@@ -36,26 +34,21 @@ const Login = () => {
       })
       .catch((error) => {
         toast.error('Something went wrong');
-        console.error(error); 
+        console.error(error);
       });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="bg-neutral rounded-md flex items-center justify-center gap-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-900 sm:px-6">
+      <div className="bg-neutral rounded-md flex flex-col items-center justify-center p-6 sm:p-8 lg:p-12 max-w-sm sm:max-w-md md:max-w-lg w-full">
         <img
           src="https://i.ibb.co/BnC3ZFs/digicash-logo-s-white-trans.png"
-          className="w-3/6"
+          className="w-2/3 sm:w-1/2 lg:w-3/6"
           alt="Digicash Logo"
         />
-        <div className="space-y-8 text-black">
-          <div>
-            <h2 className="text-center text-3xl font-bold text-primary">
-              Log in to Continue
-            </h2>
-          </div>
+        <div className="text-black w-full">
           <form
-            className="mt-8 space-y-6"
+            className=""
             onSubmit={handleSubmit(onSubmit)}
           >
             <input
@@ -63,7 +56,7 @@ const Login = () => {
               id="identifier"
               {...register("identifier", { required: "Identifier is required" })}
               autoComplete="identifier"
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm bg-gray-800"
+              className="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-gray-800"
               placeholder="Email address or phone Number"
               required
             />
@@ -79,7 +72,7 @@ const Login = () => {
                 required: "Password is required",
               })}
               autoComplete="current-password"
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm mt-4 bg-gray-800"
+              className="appearance-none rounded-md block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm mt-4 bg-gray-800"
               placeholder="Pin Number"
               required
             />
@@ -88,24 +81,22 @@ const Login = () => {
                 {errors.password.message}
               </p>
             )}
-            <div className="flex items-center justify-between mt-6">
-              <div className="text-sm">
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-6 text-sm">
+              <div className="text-center sm:text-left">
                 <a
                   href="/signup"
                   className="font-medium text-blue-600 hover:text-blue-500"
                 >
-                  do not have an account? register and get 40 taka bonus.
+                  Don't have an account? Register and get 40 Taka bonus.
                 </a>
               </div>
             </div>
-            <div>
-              <button
-                type="submit"
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mt-6"
-              >
-                Log in
-              </button>
-            </div>
+            <button
+              type="submit"
+              className="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 mt-6"
+            >
+              Log in
+            </button>
           </form>
         </div>
       </div>

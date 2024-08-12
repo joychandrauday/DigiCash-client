@@ -53,7 +53,7 @@ const UserComponent = () => {
   return (
     <div className="">
       {/* Profile Card */}
-      <div className="flex justify-between items-center">
+      <div className="lg:flex lg:text-left text-center justify-between items-center">
         <h2 className="text-2xl font-bold mb-4">{user.role} Dashboard</h2>
         <h2 className="text-2xl font-bold mb-4">
           Welcome {user.role}, {user.name}
@@ -69,7 +69,7 @@ const UserComponent = () => {
               <p className="text-gray-600 mb-2">Mobile Number: {user.mobile}</p>
               <Link
                 onClick={() =>
-                  document.getElementById("my_modal_5").showModal()
+                  document.getElementById("profile").showModal()
                 }
                 className="btn rounded-none bg-transparent border-none shadow-md mt-4 text-primary"
               >
@@ -77,15 +77,15 @@ const UserComponent = () => {
               </Link>
               {/* Open the modal using document.getElementById('ID').showModal() method */}
               <dialog
-                id="my_modal_5"
-                className="modal modal-bottom sm:modal-middle"
+                id="profile"
+                className="modal lg:modal-bottom sm:modal-middle"
               >
-                <div className="modal-box">
+                <div className="modal-box relative">
                   <Profile />
-                  <div className="modal-action">
+                  <div className="modal-action absolute top-4 right-4 m-0 p-0">
                     <form method="dialog">
                       {/* if there is a button in form, it will close the modal */}
-                      <button className="btn">Close</button>
+                      <button className="font-bold">X</button>
                     </form>
                   </div>
                 </div>

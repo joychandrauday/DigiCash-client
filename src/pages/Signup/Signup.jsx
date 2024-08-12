@@ -15,7 +15,7 @@ const Registration = () => {
     try {
       const { name, pin, mobile, email, isAgent } = data;
       const imageUrl = await imageUpload(image);
-
+      console.log(imageUrl);
       const userInfo = {
         name,
         pin,
@@ -23,7 +23,7 @@ const Registration = () => {
         email,
         role: "pending",
         isAgent,
-        image_url: imageUrl,
+        image_url: imageUrl || null,
       };
 
       const response = await axiosPublic.post("/users/register", userInfo);
@@ -41,11 +41,11 @@ const Registration = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="bg-neutral rounded-md flex items-center justify-center gap-4 p-8">
+    <div className="lg:min-h-screen flex items-center justify-center bg-gray-900 lg:py-12 lg:px-4 sm:px-6">
+      <div className="bg-neutral lg:rounded-md lg:flex items-center justify-center gap-4 p-8">
         <img
           src="https://i.ibb.co/BnC3ZFs/digicash-logo-s-white-trans.png"
-          className="w-3/6"
+          className="lg:w-3/6 mx-auto"
           alt="Digicash Logo"
         />
         <div className="space-y-8 text-black">

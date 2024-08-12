@@ -18,14 +18,20 @@ import useAxiosPublic from "../../hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 import useTransaction from "../../hooks/useTransaction";
 import Swal from "sweetalert2";
+import '../../pages/styles.css'
 
 const AdminComponent = ({ user }) => {
   const [totalUsers, setTotalUsers] = useState([]);
+  const [totalBalance, setTotalBalance] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredUsers, setFilteredUsers] = useState([]);
+  const [currentPageUsers, setCurrentPageUsers] = useState(1);
+  const [userPerPage] = useState(10);
   const [filterMethod, setFilterMethod] = useState("all");
+  const [currentPageTransactions, setCurrentPageTransactions] = useState(1);
+  const [transactionsPerPage] = useState(10);
   const axiosPublic = useAxiosPublic();
-
+  
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -38,9 +44,7 @@ const AdminComponent = ({ user }) => {
         });
 
         if (!response.ok) {
-          throw new Error(
-            `Network response was not ok: ${response.statusText}`
-          );
+          throw new Error(`Network response was not ok: ${response.statusText}`);
         }
 
         const data = await response.json();
@@ -64,7 +68,32 @@ const AdminComponent = ({ user }) => {
 
   const transactionData = useTransaction();
   console.log(transactionData);
+  useEffect(() => {
+    const fetchBalance = async () => {
+      try {
+        const response = await fetch("http://localhost:8000/total-balance", {
+          method: "GET",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
+        if (!response.ok) {
+          throw new Error(`Network response was not ok: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Fetched balance data:", data); // Log fetched data
+        setTotalBalance(data);
+      } catch (error) {
+        console.error("Error fetching balance data:", error);
+      }
+    };
+
+    fetchBalance();
+  }, []);
+  console.log(totalBalance);
   const filteredTransactionData =
     filterMethod === "all"
       ? transactionData
@@ -90,7 +119,6 @@ const AdminComponent = ({ user }) => {
   };
 
   const handleAgent = (mobile) => {
-    console.log(mobile);
     axiosPublic
       .patch(`/agent/${mobile}`, { withCredentials: true })
       .then((res) => {
@@ -127,7 +155,8 @@ const AdminComponent = ({ user }) => {
                 text: "The user has been deleted.",
                 icon: "success",
               });
-              window.location.reload();
+              // Refresh the user data
+              fetchUsers();
             } else {
               Swal.fire({
                 title: "Error",
@@ -195,13 +224,29 @@ const AdminComponent = ({ user }) => {
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28"];
 
+  // Pagination logic
+  const indexOfLastUser = currentPageUsers * userPerPage;
+  const indexOfFirstUser = indexOfLastUser - userPerPage;
+  const currentUsers = Array.isArray(filteredUsers) ? filteredUsers.slice(indexOfFirstUser, indexOfLastUser) : [];
+
+  const indexOfLastTransaction = currentPageTransactions * transactionsPerPage;
+  const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
+  const currentTransactions = Array.isArray(filteredTransactionData) ? filteredTransactionData.slice(indexOfFirstTransaction, indexOfLastTransaction) : [];
+
+  const userTotalPages = Math.ceil(filteredUsers?.length / userPerPage);
+  const transactionTotalPages = Math.ceil(
+    filteredTransactionData.length / transactionsPerPage
+  );
+
   return (
-    <div className="container mx-auto p-4">
-      <section className="text-primary p-6 rounded-lg shadow-lg">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
-          <h2 className="text-2xl font-bold mb-4">
-            Welcome Admin, {user.name}
+    <div className="container mx-auto p-4 md:p-6 lg:p-8">
+      <section className="text-primary p-4 sm:p-6 md:p-8 rounded-lg shadow-lg">
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-0">
+            Admin Dashboard
+          </h2>
+          <h2 className="text-xl sm:text-2xl font-bold">
+            Welcome Admin, {user?.name}
           </h2>
         </div>
         <Tabs>
@@ -213,191 +258,198 @@ const AdminComponent = ({ user }) => {
 
           <TabPanel>
             <div className="mb-6">
-              <h3 className="text-xl font-semibold mb-2">Manage Users</h3>
-              <div className="flex mb-4">
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                Manage Users ({totalUsers?.length})
+              </h3>
+              <div className="flex flex-col sm:flex-row mb-4">
                 <input
                   type="text"
                   placeholder="Search user by name"
-                  className="input input-bordered w-full max-w-xs mr-2"
+                  className="input input-bordered w-full sm:w-auto sm:max-w-xs mb-2 sm:mb-0 sm:mr-2"
                   value={searchQuery}
                   onChange={handleSearchChange}
                 />
-                <button className="btn btn-primary">Search</button>
+                <button className="btn commonbtn btn-primary">Search</button>
               </div>
-              <table className="table w-full">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredUsers.map((user) => (
-                    <tr key={user._id}>
-                      <td>{user.name}</td>
-                      <td>{user.email}</td>
-                      <td>
-                        <span className="badge badge-primary">{user.role}</span>
-                      </td>
-                      <td className="flex gap-5">
-                        {user.isAgent && user.role === "user" && (
+              <div className="overflow-x-auto">
+                <table className="table w-full">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Balance</th>
+                      <th>Mobile</th>
+                      <th>Role</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentUsers.map((user) => (
+                      <tr key={user?._id}>
+                        <td>{user.name}</td>
+                        <td>{user.email}</td>
+                        <td>{user.balance}</td>
+                        <td>{user.mobile}</td>
+                        <td>{user.role}</td>
+                        <td>
                           <button
-                            disabled={user.role === "agent"}
-                            className="btn-sm btn"
-                            onClick={() => handleAgent(user.mobile)}
-                          >
-                            Make Agent
-                          </button>
-                        )}
-
-                        {user.role === "pending" && (
-                          <button
-                            className="btn-sm btn"
+                            className="btn commonbtn btn-success mr-2"
                             onClick={() => handleApprove(user.mobile)}
                           >
                             Approve
                           </button>
-                        )}
-                        <button
-                          disabled={user.role === "admin"}
-                          className="btn-sm btn"
-                          onClick={() => handleDelete(user.mobile)}
-                        >
-                          Delete User
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          <button
+                            className="btn commonbtn btn-info mr-2"
+                            onClick={() => handleAgent(user.mobile)}
+                          >
+                            Make Agent
+                          </button>
+                          <button
+                            className="btn commonbtn btn-error"
+                            onClick={() => handleDelete(user.mobile)}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 flex justify-between items-center">
+                <button
+                  className="btn commonbtn btn-primary"
+                  disabled={currentPageUsers === 1}
+                  onClick={() => setCurrentPageUsers(currentPageUsers - 1)}
+                >
+                  Previous
+                </button>
+                <span>
+                  Page {currentPageUsers} of {userTotalPages}
+                </span>
+                <button
+                  className="btn commonbtn btn-primary"
+                  disabled={currentPageUsers === userTotalPages}
+                  onClick={() => setCurrentPageUsers(currentPageUsers + 1)}
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </TabPanel>
 
           <TabPanel>
-            <div>
-              <h3 className="text-xl font-semibold mb-2">
-                Transaction History
+            <div className="mb-6">
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                Transactions
               </h3>
-              <div className="flex gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row mb-4">
                 <button
-                  className="btn btn-sm rounded-none bg-black text-warning"
+                  className="btn commonbtn btn-primary mr-2"
                   onClick={() => handleFilterChange("all")}
                 >
-                  All
+                  All Transactions
                 </button>
                 <button
-                  className="btn btn-sm rounded-none bg-black text-warning"
-                  onClick={() => handleFilterChange("send-money")}
-                >
-                  Send Money
-                </button>
-                <button
-                  className="btn btn-sm rounded-none bg-black text-warning"
-                  onClick={() => handleFilterChange("cashout")}
-                >
-                  Cash Out
-                </button>
-                <button
-                  className="btn btn-sm rounded-none bg-black text-warning"
-                  onClick={() => handleFilterChange("cashin")}
+                  className="btn commonbtn btn-primary mr-2"
+                  onClick={() => handleFilterChange("cash-in")}
                 >
                   Cash In
                 </button>
+                <button
+                  className="btn commonbtn btn-primary"
+                  onClick={() => handleFilterChange("cash-out")}
+                >
+                  Cash Out
+                </button>
               </div>
-              <div className="divide-y grid grid-cols-3 gap-4 divide-gray-400">
-                {filteredTransactionData.map((transaction) => (
-                  <div key={transaction._id} className="p-2 glass relative">
-                    {(transaction.method === "send-money" && (
-                      <p className="badge badge-warning rounded-none absolute right-2">
-                        -৳ Send money
-                      </p>
-                    )) ||
-                      (transaction.method === "cashout" && (
-                        <p className="badge badge-warning rounded-none absolute right-2">
-                          -৳ Cash Out
-                        </p>
-                      )) ||
-                      (transaction.method === "cashin" && (
-                        <p className="badge badge-warning rounded-none absolute right-2">
-                          +৳ Cash In
-                        </p>
-                      ))}
-                    <p className="text-xl text-primary font-bold">
-                      Amount: {transaction.amount} ৳ 
-                    </p>
-                    <p>
-                      <span className="text-primary font-bold">Method:</span>{" "}
-                      {transaction.method}
-                    </p>
-                    <p>
-                      <span className="text-primary font-bold">Timestamp:</span>{" "}
-                      {new Date(transaction.timestamp).toLocaleString()}
-                    </p>
-                    <p>
-                      <span className="text-primary font-bold">Sender:</span>{" "}
-                      {transaction.mobile}
-                    </p>
-                    <p>
-                      <span className="text-primary font-bold">Receiver:</span>{" "}
-                      {transaction.recipient}
-                    </p>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="table w-full">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Amount</th>
+                      <th>Method</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentTransactions.map((transaction) => (
+                      <tr key={transaction._id}>
+                        <td>{transaction.timestamp}</td>
+                        <td>{transaction.amount}</td>
+                        <td>{transaction.method}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 flex justify-between items-center">
+                <button
+                  className="btn commonbtn btn-primary"
+                  disabled={currentPageTransactions === 1}
+                  onClick={() => setCurrentPageTransactions(currentPageTransactions - 1)}
+                >
+                  Previous
+                </button>
+                <span>
+                  Page {currentPageTransactions} of {transactionTotalPages}
+                </span>
+                <button
+                  className="btn commonbtn btn-primary"
+                  disabled={currentPageTransactions === transactionTotalPages}
+                  onClick={() => setCurrentPageTransactions(currentPageTransactions + 1)}
+                >
+                  Next
+                </button>
               </div>
             </div>
           </TabPanel>
 
           <TabPanel>
-            <div className="flex justify-between flex-wrap">
-              <div className="w-1/2">
-                <h3 className="text-xl font-semibold mb-2">
-                  Daily Transaction Overview
-                </h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={aggregatedTransactionData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="amount" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
+            <div className="mb-6">
+              <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                Overview
+              </h3>
+              <div className="">
+                total system balance {totalBalance.totalBalance}
               </div>
-              <div className="w-1/2">
-                <h3 className="text-xl font-semibold mb-2 text-center">
-                  All Transaction Overview
-                </h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={transactionsByMethod}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ payload }) => {
-                        if (!payload) return null; // Check if payload exists
-                        const { name, value, percent } = payload;
-                        return `${name}: ${(percent * 100).toFixed(0)}%`;
-                      }}
-                      outerRadius={120}
-                      fill="#8884d8"
-                      dataKey="value"
+              <div className="flex flex-col sm:flex-row mb-6">
+                <div className="w-full sm:w-1/2">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={aggregatedTransactionData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                     >
-                      {transactionsByMethod.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="amount" fill="#8884d8" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="w-full sm:w-1/2 mt-6 sm:mt-0">
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={transactionsByMethod}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        fill="#8884d8"
+                        label
+                      >
+                        {transactionsByMethod.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           </TabPanel>

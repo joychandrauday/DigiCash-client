@@ -44,11 +44,11 @@ const Home = () => {
       <div className="min-h-screen bg-gray-100">
         {/* Header */}
         <header className="bg-blue-600 text-white py-4">
-          <div className="container flex justify-between items-center mx-auto px-4">
-            <h1 className="text-3xl font-bold w-1/3">
+          <div className="container lg:flex justify-between items-center mx-auto px-4">
+            <h1 className="text-3xl text-center lg:text-left font-bold lg:w-1/3">
               Welcome to DigiCash Dashboard
             </h1>
-            <div className=" w-1/3  rounded px-4">
+            <div className=" lg:w-1/3 my-4 lg:my-0 rounded px-4">
               <div className="rounded shadow-lg bg-white">
                 
                 <img
@@ -58,7 +58,7 @@ const Home = () => {
                 />
               </div>
             </div>
-            <div className="w-1/3 flex items-center justify-end">
+            <div className="lg:w-1/3 flex items-center justify-center lg:justify-end">
               <button
                 className=" flex gap-2 text-md items-center justify-center font-bold group shadow-sm bg-red-600 px-5 py-2 shadow-black"
                 onClick={handleLogout}

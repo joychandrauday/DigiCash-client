@@ -102,7 +102,7 @@ const CashinForm = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-lg">
+    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg">
       <h2 className="text-2xl font-bold mb-4">Send Money</h2>
       {error && <div className="text-red-500 mb-4">{error}</div>}
       <div className="mb-4">
