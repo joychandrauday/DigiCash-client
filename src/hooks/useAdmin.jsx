@@ -23,7 +23,6 @@ const useAdmin = () => {
         }
 
         const data = await response.json();
-        console.log("Fetched user data:", data); // Log fetched data
         setUser(data);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -48,11 +47,11 @@ const useAdmin = () => {
   });
 
   if (loading) {
-    console.log("Loading user data...");
+    <p>loading admin status...</p>
   } else if (error) {
     console.error("Error during admin check:", error);
   } else {
-    console.log("Admin check complete:", isAdmin);
+    <p>Admin check complete</p>
   }
 
   return [isAdmin, isAdminLoading, loading];

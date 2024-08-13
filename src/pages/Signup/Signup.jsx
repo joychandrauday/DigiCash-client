@@ -15,7 +15,6 @@ const Registration = () => {
     try {
       const { name, pin, mobile, email, isAgent } = data;
       const imageUrl = await imageUpload(image);
-      console.log(imageUrl);
       const userInfo = {
         name,
         pin,

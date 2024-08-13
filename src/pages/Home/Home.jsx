@@ -33,9 +33,7 @@ const Home = () => {
 
   const admin = user.role === "admin";
   const agent = user.role === "agent";
-
-  console.log(admin); // Log user state to debug
-
+  
   return (
     <div>
       <Helmet>

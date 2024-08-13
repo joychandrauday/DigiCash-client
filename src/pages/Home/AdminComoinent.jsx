@@ -18,7 +18,7 @@ import useAxiosPublic from "../../hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 import useTransaction from "../../hooks/useTransaction";
 import Swal from "sweetalert2";
-import '../../pages/styles.css'
+import "../../pages/styles.css";
 
 const AdminComponent = ({ user }) => {
   const [totalUsers, setTotalUsers] = useState([]);
@@ -31,7 +31,7 @@ const AdminComponent = ({ user }) => {
   const [currentPageTransactions, setCurrentPageTransactions] = useState(1);
   const [transactionsPerPage] = useState(10);
   const axiosPublic = useAxiosPublic();
-  
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -44,11 +44,12 @@ const AdminComponent = ({ user }) => {
         });
 
         if (!response.ok) {
-          throw new Error(`Network response was not ok: ${response.statusText}`);
+          throw new Error(
+            `Network response was not ok: ${response.statusText}`
+          );
         }
 
         const data = await response.json();
-        console.log("Fetched user data:", data); // Log fetched data
         setTotalUsers(data);
         setFilteredUsers(data);
       } catch (error) {
@@ -67,7 +68,7 @@ const AdminComponent = ({ user }) => {
   }, [searchQuery, totalUsers]);
 
   const transactionData = useTransaction();
-  console.log(transactionData);
+  
   useEffect(() => {
     const fetchBalance = async () => {
       try {
@@ -80,11 +81,12 @@ const AdminComponent = ({ user }) => {
         });
 
         if (!response.ok) {
-          throw new Error(`Network response was not ok: ${response.statusText}`);
+          throw new Error(
+            `Network response was not ok: ${response.statusText}`
+          );
         }
 
         const data = await response.json();
-        console.log("Fetched balance data:", data); // Log fetched data
         setTotalBalance(data);
       } catch (error) {
         console.error("Error fetching balance data:", error);
@@ -93,7 +95,6 @@ const AdminComponent = ({ user }) => {
 
     fetchBalance();
   }, []);
-  console.log(totalBalance);
   const filteredTransactionData =
     filterMethod === "all"
       ? transactionData
@@ -105,7 +106,6 @@ const AdminComponent = ({ user }) => {
     axiosPublic
       .patch(`/users/${mobile}`, { withCredentials: true })
       .then((res) => {
-        console.log(res);
         if (res.status === 200) {
           toast.success("User approved successfully.");
         } else {
@@ -120,9 +120,8 @@ const AdminComponent = ({ user }) => {
 
   const handleAgent = (mobile) => {
     axiosPublic
-      .patch(`/agent/${mobile}`, { withCredentials: true })
+      .patch(`/make-agent/${mobile}`, { withCredentials: true })
       .then((res) => {
-        console.log(res);
         if (res.status === 200) {
           toast.success("User approved successfully.");
         } else {
@@ -133,6 +132,60 @@ const AdminComponent = ({ user }) => {
         toast.error("Something went wrong");
         console.error(error);
       });
+  };
+  const handleAdmin = (mobile) => {
+    // axiosPublic
+    // .patch(`/admin/${mobile}`, { withCredentials: true })
+    // .then((res) => {
+    //   if (res.status === 200) {
+    //     toast.success("User approved successfully.");
+    //   } else {
+    //     toast.error("Something went wrong.");
+    //   }
+    // })
+    // .catch((error) => {
+    //   toast.error("Something went wrong");
+    //   console.error(error);
+    // });
+
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Make Admin!",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        axiosPublic
+          .patch(`/admin/${mobile}`, { withCredentials: true })
+          .then((res) => {
+            if (res.data.user.modifiedCount > 0) {
+              Swal.fire({
+                title: "Made Agent!",
+                text: "The user has been made Agent.",
+                icon: "success",
+              });
+              // Refresh the user data
+            } else {
+              Swal.fire({
+                title: "Error",
+                text: "Some Error occurred.",
+                icon: "error",
+              });
+            }
+          })
+          .catch((error) => {
+            console.error("Error deleting user:", error);
+            Swal.fire({
+              title: "Error",
+              text: "An error occurred while deleting the user.",
+              icon: "error",
+            });
+          });
+      }
+    });
   };
 
   const handleDelete = (mobile) => {
@@ -227,17 +280,71 @@ const AdminComponent = ({ user }) => {
   // Pagination logic
   const indexOfLastUser = currentPageUsers * userPerPage;
   const indexOfFirstUser = indexOfLastUser - userPerPage;
-  const currentUsers = Array.isArray(filteredUsers) ? filteredUsers.slice(indexOfFirstUser, indexOfLastUser) : [];
+  const currentUsers = Array.isArray(filteredUsers)
+    ? filteredUsers.slice(indexOfFirstUser, indexOfLastUser)
+    : [];
 
   const indexOfLastTransaction = currentPageTransactions * transactionsPerPage;
   const indexOfFirstTransaction = indexOfLastTransaction - transactionsPerPage;
-  const currentTransactions = Array.isArray(filteredTransactionData) ? filteredTransactionData.slice(indexOfFirstTransaction, indexOfLastTransaction) : [];
+  const currentTransactions = Array.isArray(filteredTransactionData)
+    ? filteredTransactionData.slice(
+        indexOfFirstTransaction,
+        indexOfLastTransaction
+      )
+    : [];
 
   const userTotalPages = Math.ceil(filteredUsers?.length / userPerPage);
   const transactionTotalPages = Math.ceil(
     filteredTransactionData.length / transactionsPerPage
   );
-
+  const handleApproveCash = (id, amount) => {
+    if (user.balance < amount) {
+      toast("Transaction amount must be at least 50 Taka.");
+      return;
+    }
+    const approvalCredit = {
+      requestId: id,
+      agentMobile: user.mobile,
+    };
+    axiosPublic
+      .post("/approve-cashin", approvalCredit, {
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data) {
+          toast.success("Transaction successful...");
+          window.location.reload();
+        } else {
+          toast.error("Transaction failed. Please check your credentials.");
+        }
+      })
+      .catch((error) => {
+        toast.error("Something went wrong");
+        console.error(error);
+      });
+  };
+  const handleDeclineCasin = (id) => {
+    const approvalCredit = {
+      requestId: id,
+      agentMobile: user.mobile,
+    };
+    axiosPublic
+      .post("/decline-cashin", approvalCredit, {
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data) {
+          toast.success("Transaction successful...");
+          window.location.reload();
+        } else {
+          toast.error("Transaction failed. Please check your credentials.");
+        }
+      })
+      .catch((error) => {
+        toast.error("Something went wrong");
+        console.error(error);
+      });
+  };
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
       <section className="text-primary p-4 sm:p-6 md:p-8 rounded-lg shadow-lg">
@@ -288,25 +395,38 @@ const AdminComponent = ({ user }) => {
                       <tr key={user?._id}>
                         <td>{user.name}</td>
                         <td>{user.email}</td>
-                        <td>{user.balance}</td>
+                        <td>৳ {user.balance}</td>
                         <td>{user.mobile}</td>
                         <td>{user.role}</td>
                         <td>
+                          {user?.role === "pending" && (
+                            <button
+                              onClick={() => handleApprove(user?.mobile)}
+                              className="btn commonbtn btn-success"
+                            >
+                              Approve
+                            </button>
+                          )}
+                          {user?.role === "user" && (
+                            <button
+                              onClick={() => handleAgent(user?.mobile)}
+                              className="btn commonbtn shadow-sm btn-warning"
+                            >
+                              Make Agent
+                            </button>
+                          )}
+                          {user?.role === "agent" && (
+                            <button
+                              onClick={() => handleAdmin(user?.mobile)}
+                              className="btn commonbtn shadow-sm btn-warning"
+                            >
+                              Make Admin
+                            </button>
+                          )}
                           <button
-                            className="btn commonbtn btn-success mr-2"
-                            onClick={() => handleApprove(user.mobile)}
-                          >
-                            Approve
-                          </button>
-                          <button
-                            className="btn commonbtn btn-info mr-2"
-                            onClick={() => handleAgent(user.mobile)}
-                          >
-                            Make Agent
-                          </button>
-                          <button
-                            className="btn commonbtn btn-error"
-                            onClick={() => handleDelete(user.mobile)}
+                            onClick={() => handleDelete(user?.mobile)}
+                            className="btn commonbtn shadow btn-error"
+                            disabled={user?.role === "admin"}
                           >
                             Delete
                           </button>
@@ -352,32 +472,88 @@ const AdminComponent = ({ user }) => {
                 </button>
                 <button
                   className="btn commonbtn btn-primary mr-2"
-                  onClick={() => handleFilterChange("cash-in")}
+                  onClick={() => handleFilterChange("cashin")}
                 >
                   Cash In
                 </button>
                 <button
                   className="btn commonbtn btn-primary"
-                  onClick={() => handleFilterChange("cash-out")}
+                  onClick={() => handleFilterChange("cashout")}
                 >
                   Cash Out
+                </button>
+                <button
+                  className="btn commonbtn btn-primary"
+                  onClick={() => handleFilterChange("send-money")}
+                >
+                  Send Money
                 </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="table w-full">
                   <thead>
                     <tr>
+                      <th>Sender</th>
+                      <th>Reciever</th>
                       <th>Date</th>
                       <th>Amount</th>
                       <th>Method</th>
+                      <th>Status</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
                     {currentTransactions.map((transaction) => (
                       <tr key={transaction._id}>
-                        <td>{transaction.timestamp}</td>
-                        <td>{transaction.amount}</td>
-                        <td>{transaction.method}</td>
+                        <td>{transaction?.mobile}</td>
+                        <td>{transaction?.recipient}</td>
+                        <td>
+                          {new Date(transaction.timestamp).toLocaleDateString()}
+                        </td>
+                        <td>৳ {transaction.amount.toFixed(2)}</td>
+                        <td>
+                          {(transaction.method === "send-money" && (
+                            <p className="badge badge-warning rounded-none">
+                              -৳ Send money
+                            </p>
+                          )) ||
+                            (transaction.method === "cashout" && (
+                              <p className="badge badge-warning bg-red-600 text-white rounded-none">
+                                -৳ Cash Out
+                              </p>
+                            )) ||
+                            (transaction.method === "cashin" && (
+                              <p className="badge badge-warning rounded-none">
+                                +৳ Cash In
+                              </p>
+                            ))}
+                        </td>
+                        <td>{transaction?.status}</td>
+                        <td>
+                          {transaction?.status === "pending" && (
+                            <p>
+                              <button
+                                className="btn-sm border btn-warning bg-yellow-400"
+                                onClick={() =>
+                                  handleApproveCash(
+                                    transaction._id,
+                                    transaction.amount
+                                  )
+                                }
+                              >
+                                Approve
+                              </button>
+                              <button
+                                className="btn-sm border text-white bg-red-800"
+                                onClick={() =>
+                                  handleDeclineCasin(transaction._id)
+                                }
+                              >
+                                Decline
+                              </button>
+                            </p>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -387,7 +563,9 @@ const AdminComponent = ({ user }) => {
                 <button
                   className="btn commonbtn btn-primary"
                   disabled={currentPageTransactions === 1}
-                  onClick={() => setCurrentPageTransactions(currentPageTransactions - 1)}
+                  onClick={() =>
+                    setCurrentPageTransactions(currentPageTransactions - 1)
+                  }
                 >
                   Previous
                 </button>
@@ -397,7 +575,9 @@ const AdminComponent = ({ user }) => {
                 <button
                   className="btn commonbtn btn-primary"
                   disabled={currentPageTransactions === transactionTotalPages}
-                  onClick={() => setCurrentPageTransactions(currentPageTransactions + 1)}
+                  onClick={() =>
+                    setCurrentPageTransactions(currentPageTransactions + 1)
+                  }
                 >
                   Next
                 </button>
@@ -407,11 +587,16 @@ const AdminComponent = ({ user }) => {
 
           <TabPanel>
             <div className="mb-6">
-              <h3 className="text-lg sm:text-xl font-semibold mb-2">
-                Overview
-              </h3>
-              <div className="">
-                total system balance {totalBalance.totalBalance}
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="text-lg sm:text-xl font-semibold mb-2">
+                  Overview
+                </h3>
+                <div className="text-xl  capitalize">
+                  total system balance{" "}
+                  <div className="badge font-bold rounded-none badge-warning text-xl">
+                    {totalBalance.totalBalance}
+                  </div>
+                </div>
               </div>
               <div className="flex flex-col sm:flex-row mb-6">
                 <div className="w-full sm:w-1/2">
@@ -443,7 +628,10 @@ const AdminComponent = ({ user }) => {
                         label
                       >
                         {transactionsByMethod.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
                         ))}
                       </Pie>
                       <Tooltip />

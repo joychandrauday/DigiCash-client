@@ -21,7 +21,6 @@ const useSingleTransaction = ({user}) => {
         }
 
         const data = await response.json();
-        console.log("Fetched user data:", data);
         setTransaction(data);
       } catch (error) {
         console.error("Error fetching user data:", error);

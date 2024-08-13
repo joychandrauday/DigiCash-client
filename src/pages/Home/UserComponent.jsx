@@ -9,7 +9,6 @@ import Profile from "../../components/Profile";
 const UserComponent = () => {
   const [transaction, setTransaction] = useState([]);
   const user = useUser();
-  console.log(transaction);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -32,7 +31,6 @@ const UserComponent = () => {
         }
 
         const data = await response.json();
-        console.log("Fetched user data:", data);
 
         // Sort the transactions by timestamp in descending order
         const sortedTransactions = data.sort(
@@ -68,9 +66,7 @@ const UserComponent = () => {
               <p className="text-gray-600 mb-2">Email: {user.email}</p>
               <p className="text-gray-600 mb-2">Mobile Number: {user.mobile}</p>
               <Link
-                onClick={() =>
-                  document.getElementById("profile").showModal()
-                }
+                onClick={() => document.getElementById("profile").showModal()}
                 className="btn rounded-none bg-transparent border-none shadow-md mt-4 text-primary"
               >
                 View Profile
@@ -106,7 +102,14 @@ const UserComponent = () => {
           </p>
           <div>
             {latestTransaction ? (
-              <div key={latestTransaction._id} className="border p-4 mb-4">
+              <div
+                key={latestTransaction._id}
+                className={
+                  latestTransaction?.status === "declined"
+                    ? "border bg-error p-4 mb-4"
+                    : "border shadow-md p-4 mb-4"
+                }
+              >
                 {(latestTransaction.method === "send-money" && (
                   <p className="badge badge-warning rounded-none">
                     -৳ Send money
@@ -121,6 +124,20 @@ const UserComponent = () => {
                     <p className="badge badge-warning rounded-none">
                       +৳ Cash In
                     </p>
+                  ))}
+                {(latestTransaction.status === "pending" && (
+                  <>
+                    <p className="badge  animate-pulse badge-error rounded-none">
+                      pending request
+                    </p>
+                  </>
+                )) ||
+                  (latestTransaction.status === "declined" && (
+                    <>
+                      <p className="badge badge-error rounded-none">
+                        Request rejected
+                      </p>
+                    </>
                   ))}
                 <h2>Last Transaction</h2>
                 <p>Transaction ID: {latestTransaction._id}</p>
@@ -215,9 +232,22 @@ const UserComponent = () => {
                 {transaction.map((trx) => (
                   <div
                     key={trx._id}
-                    className="bg-gray-300 mb-2 p-4 text-black rounded relative"
+                    className={
+                      trx.status === "declined"
+                        ? "bg-red-900 text-white mb-2 p-4 rounded relative"
+                        : "bg-gray-300 mb-2 p-4 text-black rounded relative"
+                    }
                   >
-                    <p>Transaction ID: {trx._id}</p>
+                    {trx?.status === "declined" ? (
+                      <p className="badge badge-warning rounded-none absolute top-6 right-0">
+                        X৳ request rejected.
+                      </p>
+                    ) : (
+                      ""
+                    )}
+                    <p className={trx?.status === "declined" ? "hidden" : ""}>
+                      Transaction ID: {trx._id}
+                    </p>
                     <p>Amount: ৳ {trx.amount}</p>
                     <p>Receiver: {trx.recipient}</p>
                     <p>Date: {new Date(trx.timestamp).toLocaleString()}</p>

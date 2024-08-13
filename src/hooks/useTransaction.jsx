@@ -21,7 +21,6 @@ const useTransaction = () => {
         }
 
         const data = await response.json();
-        console.log("Fetched user data:", data); // Log fetched data
         setUser(data);
       } catch (error) {
         console.error("Error fetching user data:", error);

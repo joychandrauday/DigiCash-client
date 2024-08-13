@@ -28,7 +28,9 @@ const AgentComponent = () => {
         );
 
         if (!response.ok) {
-          throw new Error(`Network response was not ok: ${response.statusText}`);
+          throw new Error(
+            `Network response was not ok: ${response.statusText}`
+          );
         }
 
         const data = await response.json();
@@ -74,6 +76,28 @@ const AgentComponent = () => {
         console.error(error);
       });
   };
+  const handleDeclineCasin = (id) => {
+    const approvalCredit = {
+      requestId: id,
+      agentMobile: user.mobile,
+    };
+    axiosPublic
+      .post("/decline-cashin", approvalCredit, {
+        withCredentials: true,
+      })
+      .then((res) => {
+        if (res.data) {
+          toast.success("Transaction successful...");
+          window.location.reload();
+        } else {
+          toast.error("Transaction failed. Please check your credentials.");
+        }
+      })
+      .catch((error) => {
+        toast.error("Something went wrong");
+        console.error(error);
+      });
+  };
 
   return (
     <div className="p-4 sm:p-6 md:p-8 lg:p-10">
@@ -101,7 +125,10 @@ const AgentComponent = () => {
               >
                 View Profile
               </Link>
-              <dialog id="profile" className="modal lg:modal-bottom sm:modal-middle">
+              <dialog
+                id="profile"
+                className="modal lg:modal-bottom sm:modal-middle"
+              >
                 <div className="modal-box relative">
                   <Profile />
                   <div className="modal-action absolute top-4 right-4 m-0 p-0">
@@ -129,7 +156,11 @@ const AgentComponent = () => {
             {latestTransaction ? (
               <div
                 key={latestTransaction._id}
-                className="border p-4 mb-4 relative shadow shadow-gray-400"
+                className={
+                  latestTransaction?.status === "declined"
+                    ? "border bg-error p-4 mb-4 relative shadow shadow-gray-400"
+                    : "border p-4 mb-4 relative shadow shadow-gray-400"
+                }
               >
                 {(latestTransaction.method === "send-money" && (
                   <p className="badge badge-warning rounded-none absolute top-0 right-0">
@@ -146,6 +177,22 @@ const AgentComponent = () => {
                       -৳ Cash In
                     </p>
                   ))}
+                <>
+                  {(latestTransaction.status === "pending" && (
+                    <>
+                      <p className="absolute right-0 top-5 badge  animate-pulse badge-error rounded-none">
+                        pending request
+                      </p>
+                    </>
+                  )) ||
+                    (latestTransaction.status === "declined" && (
+                      <>
+                        <p className="absolute right-0 top-5 badge badge-warning rounded-none shadow">
+                          Request rejected
+                        </p>
+                      </>
+                    ))}
+                </>
                 <h2>Last Transaction</h2>
                 <p>Transaction ID: {latestTransaction._id}</p>
                 <p>Amount: {latestTransaction.amount}</p>
@@ -158,10 +205,19 @@ const AgentComponent = () => {
                     <button
                       className="btn-sm border btn-warning bg-yellow-400"
                       onClick={() =>
-                        handleApproveCash(latestTransaction._id, latestTransaction.amount)
+                        handleApproveCash(
+                          latestTransaction._id,
+                          latestTransaction.amount
+                        )
                       }
                     >
                       Approve
+                    </button>
+                    <button
+                      className="btn-sm border text-white bg-red-800"
+                      onClick={() => handleDeclineCasin(latestTransaction._id)}
+                    >
+                      Decline
                     </button>
                   </p>
                 )}
@@ -179,7 +235,9 @@ const AgentComponent = () => {
             <li>
               <button
                 className="text-blue-600 hover:text-blue-700 font-medium"
-                onClick={() => document.getElementById("my_modal_1").showModal()}
+                onClick={() =>
+                  document.getElementById("my_modal_1").showModal()
+                }
               >
                 Pay Bill
               </button>
@@ -197,7 +255,9 @@ const AgentComponent = () => {
             <li>
               <button
                 className="text-blue-600 hover:text-blue-700 font-medium"
-                onClick={() => document.getElementById("my_modal_cashin").showModal()}
+                onClick={() =>
+                  document.getElementById("my_modal_cashin").showModal()
+                }
               >
                 Cash In
               </button>
@@ -235,6 +295,22 @@ const AgentComponent = () => {
                       -৳ Cash In
                     </p>
                   ))}
+                <>
+                  {(latestTransaction.status === "pending" && (
+                    <>
+                      <p className="absolute right-0 top-5 badge  animate-pulse badge-error rounded-none">
+                        pending request
+                      </p>
+                    </>
+                  )) ||
+                    (latestTransaction.status === "declined" && (
+                      <>
+                        <p className="absolute right-0 top-5 badge badge-warning rounded-none shadow">
+                          Request rejected
+                        </p>
+                      </>
+                    ))}
+                </>
                 <h2>Last Transaction</h2>
                 <p>Transaction ID: {latestTransaction._id}</p>
                 <p>Amount: ৳ {latestTransaction.amount}</p>
@@ -251,31 +327,36 @@ const AgentComponent = () => {
           <div className="mt-4">
             <button
               className="btn rounded-none bg-transparent border-none shadow-md"
-              onClick={() => document.getElementById("my_modal_trx").showModal()}
+              onClick={() =>
+                document.getElementById("my_modal_trx").showModal()
+              }
             >
               ৳ View All Transactions
             </button>
             <dialog id="my_modal_trx" className="modal">
               <div className="modal-box">
-                {transaction.map((trx) => (
+              {transaction.map((trx) => (
                   <div
                     key={trx._id}
-                    className="bg-gray-300 mb-2 p-4 text-black rounded relative"
+                    className={
+                      trx.status === "declined"
+                        ? "bg-red-900 text-white mb-2 p-4 rounded relative"
+                        : "bg-gray-300 mb-2 p-4 text-black rounded relative"
+                    }
                   >
-                    <p>Transaction ID: {trx._id}</p>
+                    {trx?.status === "declined" ? (
+                      <p className="badge badge-warning rounded-none absolute top-6 right-0">
+                        X৳ request rejected.
+                      </p>
+                    ) : (
+                      ""
+                    )}
+                    <p className={trx?.status === "declined" ? "hidden" : ""}>
+                      Transaction ID: {trx._id}
+                    </p>
                     <p>Amount: ৳ {trx.amount}</p>
                     <p>Receiver: {trx.recipient}</p>
                     <p>Date: {new Date(trx.timestamp).toLocaleString()}</p>
-                    {trx.status === "pending" && (
-                      <p>
-                        <button
-                          className="btn-sm border btn-warning bg-yellow-400"
-                          onClick={() => handleApproveCash(trx._id, trx.amount)}
-                        >
-                          Approve
-                        </button>
-                      </p>
-                    )}
                     <div className="absolute top-0 right-0">
                       {(trx.method === "send-money" && (
                         <p className="badge badge-warning rounded-none">
@@ -284,12 +365,12 @@ const AgentComponent = () => {
                       )) ||
                         (trx.method === "cashout" && (
                           <p className="badge badge-warning rounded-none">
-                            +৳ Cash Out
+                            -৳ Cash Out
                           </p>
                         )) ||
                         (trx.method === "cashin" && (
                           <p className="badge badge-warning rounded-none">
-                            -৳ Cash In
+                            +৳ Cash In
                           </p>
                         ))}
                     </div>

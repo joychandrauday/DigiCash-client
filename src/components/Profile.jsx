@@ -3,7 +3,6 @@ import useUser from "../hooks/useUser";
 
 const Profile = () => {
   const user = useUser();
-  console.log(user?.image_url);
   return (
     <div className="text-center">
       <div className="avatar ">

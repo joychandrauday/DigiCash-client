@@ -77,7 +77,6 @@ const CashinForm = () => {
       totalAmount,
       method: "cashin", // Assuming you want to specify the method
     };
-    console.log(transactionData);
     axiosPublic
       .post("/transactions", transactionData, {
         withCredentials: true,
