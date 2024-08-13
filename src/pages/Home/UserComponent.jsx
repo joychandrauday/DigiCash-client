@@ -6,6 +6,7 @@ import useUser from "../../hooks/useUser";
 import CashinFormReq from "../../components/CashInFormReq";
 import Profile from "../../components/Profile";
 
+const apiLink= import.meta.env.VITE_API_URL
 const UserComponent = () => {
   const [transaction, setTransaction] = useState([]);
   const user = useUser();
@@ -14,7 +15,7 @@ const UserComponent = () => {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/transactions/${user.mobile}`,
+          `${apiLink}/transactions/${user.mobile}`,
           {
             method: "GET",
             credentials: "include", // Use 'credentials' instead of 'withCredentials'

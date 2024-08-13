@@ -3,6 +3,7 @@ import useUser from "../hooks/useUser";
 import useAxiosPublic from "../hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 
+const apiLink= import.meta.env.VITE_API_URL
 const SendMoneyForm = () => {
   const [amount, setAmount] = useState("");
   const [totalAmount, setTotalAmount] = useState("");
@@ -28,7 +29,7 @@ const SendMoneyForm = () => {
     if (e.target.value) {
       try {
         const response = await fetch(
-          `http://localhost:8000/user/${e.target.value}`,
+          `${apiLink}/user/${e.target.value}`,
           {
             method: "GET",
             credentials: "include",

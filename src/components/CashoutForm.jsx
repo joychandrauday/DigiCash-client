@@ -33,7 +33,7 @@ const CashoutForm = () => {
     if (selectedRecipient) {
       try {
         const response = await fetch(
-          `http://localhost:8000/user/${selectedRecipient}`,
+          `https://digi-cash-server.vercel.app/user/${selectedRecipient}`,
           {
             method: "GET",
             credentials: "include",

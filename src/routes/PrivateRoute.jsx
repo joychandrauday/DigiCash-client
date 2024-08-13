@@ -2,15 +2,15 @@ import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-
+const apiLink= import.meta.env.VITE_API_URL
 const PrivateRoute = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-
+  console.log(apiLink);
   const { data, error, isError, isLoading } = useQuery({
     queryKey: ["protectedContent"],
     queryFn: async () => {
-      const response = await fetch(`http://localhost:8000/protected`, {
+      const response = await fetch(`${apiLink}/protected`, {
         method: "GET",
         credentials: "include",
       });

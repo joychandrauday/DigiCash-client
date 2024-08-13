@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import useAxiosPublic from './useAxiosPublic';
 
+const apiLink= import.meta.env.VITE_API_URL
 const useAdmin = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // Add loading state for user data fetch
@@ -10,7 +11,7 @@ const useAdmin = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch("http://localhost:8000/user", {
+        const response = await fetch(`${apiLink}/user`, {
           method: "GET",
           credentials: "include", // Use 'credentials' instead of 'withCredentials'
           headers: {

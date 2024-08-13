@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import useAxiosPublic from "../../hooks/useAxiosPublic";
 import Profile from "../../components/Profile";
 
+const apiLink= import.meta.env.VITE_API_URL
 const AgentComponent = () => {
   const [transaction, setTransaction] = useState([]);
   const user = useUser();
@@ -17,7 +18,7 @@ const AgentComponent = () => {
     const fetchUser = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/transactions-agent/${user.mobile}`,
+          `${apiLink}/transactions-agent/${user.mobile}`,
           {
             method: "GET",
             credentials: "include",

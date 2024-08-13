@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 
+const apiLink= import.meta.env.VITE_API_URL
 const useAgent = () => {
     const [user, setUser] = useState([]);
 
   useEffect(() => {
     const fetchAgents = async () => {
       try {
-        const response = await fetch("http://localhost:8000/users/agent", {
+        const response = await fetch(`${apiLink}/users/agent`, {
           method: "GET",
           credentials: "include", // Use 'credentials' instead of 'withCredentials'
           headers: {

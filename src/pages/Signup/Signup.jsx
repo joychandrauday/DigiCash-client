@@ -4,7 +4,6 @@ import useAxiosPublic from "../../hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { imageUpload } from "../../api/utils/index";
-
 const Registration = () => {
   const axiosPublic = useAxiosPublic();
   const navigate = useNavigate();

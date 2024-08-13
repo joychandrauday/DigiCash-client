@@ -20,6 +20,7 @@ import useTransaction from "../../hooks/useTransaction";
 import Swal from "sweetalert2";
 import "../../pages/styles.css";
 
+const apiLink= import.meta.env.VITE_API_URL
 const AdminComponent = ({ user }) => {
   const [totalUsers, setTotalUsers] = useState([]);
   const [totalBalance, setTotalBalance] = useState("");
@@ -35,7 +36,7 @@ const AdminComponent = ({ user }) => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await fetch("http://localhost:8000/users", {
+        const response = await fetch(`${apiLink}/users`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -72,7 +73,7 @@ const AdminComponent = ({ user }) => {
   useEffect(() => {
     const fetchBalance = async () => {
       try {
-        const response = await fetch("http://localhost:8000/total-balance", {
+        const response = await fetch(`${apiLink}/total-balance`, {
           method: "GET",
           credentials: "include",
           headers: {

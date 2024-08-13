@@ -25,7 +25,7 @@ const CashinForm = () => {
     if (e.target.value) {
       try {
         const response = await fetch(
-          `http://localhost:8000/user/${e.target.value}`,
+          `https://digi-cash-server.vercel.app/user/${e.target.value}`,
           {
             method: "GET",
             credentials: "include",
