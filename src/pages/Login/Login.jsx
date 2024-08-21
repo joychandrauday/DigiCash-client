@@ -25,6 +25,7 @@ const Login = () => {
         withCredentials: true,
       })
       .then((res) => {
+        console.log(res);
         if (res.data.token) {
           toast.success('You are signed in!!');
           navigate("/");
@@ -34,7 +35,7 @@ const Login = () => {
       })
       .catch((error) => {
         toast.error('Something went wrong');
-        console.error(error);
+        // console.error(error);
       });
   };
 

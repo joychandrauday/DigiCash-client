@@ -20,20 +20,20 @@ const Home = () => {
         if (res.data.success) {
           toast.success("You are logged out.");
           // Redirect to login or homepage after logout
-          window.location.href = "/";
+          window.location.href = "/login";
         } else {
           toast.error("Something went wrong.");
         }
       })
       .catch((error) => {
-        toast.error("Something went wrong");
+        toast.error("Something went wrong.");
         console.error(error);
       });
   };
 
   const admin = user.role === "admin";
   const agent = user.role === "agent";
-  
+
   return (
     <div>
       <Helmet>
@@ -48,11 +48,10 @@ const Home = () => {
             </h1>
             <div className=" lg:w-1/3 my-4 lg:my-0 rounded px-4">
               <div className="rounded shadow-lg bg-white">
-                
                 <img
                   src="https://i.ibb.co/G3rfDHB/digicash-main-logo-1-2.png"
                   className="w-1/2 logo mx-auto"
-                  alt="DigiCash Logo " 
+                  alt="DigiCash Logo "
                 />
               </div>
             </div>
@@ -62,8 +61,7 @@ const Home = () => {
                 onClick={handleLogout}
               >
                 <span className="">Sign Out</span>
-                <HiOutlineLogout className="group-hover:translate-x-2 transition-transform font-bold text-2xl"/>
-                
+                <HiOutlineLogout className="group-hover:translate-x-2 transition-transform font-bold text-2xl" />
               </button>
             </div>
           </div>

@@ -3,7 +3,7 @@ import useUser from "../hooks/useUser";
 import useAxiosPublic from "../hooks/useAxiosPublic";
 import toast from "react-hot-toast";
 import useAgent from "../hooks/useAgents";
-
+const apiLink= import.meta.env.VITE_API_URL
 const CashoutForm = () => {
   const [amount, setAmount] = useState("");
   const [totalAmount, setTotalAmount] = useState("");
@@ -33,7 +33,7 @@ const CashoutForm = () => {
     if (selectedRecipient) {
       try {
         const response = await fetch(
-          `https://digi-cash-server.vercel.app/user/${selectedRecipient}`,
+          `${apiLink}/user/${selectedRecipient}`,
           {
             method: "GET",
             credentials: "include",
