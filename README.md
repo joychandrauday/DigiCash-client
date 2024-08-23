@@ -1,4 +1,4 @@
-# DigiShop Frontend
+# DigiCash Frontend
 
 DigitalCash is a modern and secure Mobile Financial Service (MFS) platform designed to provide users with seamless and reliable digital financial solutions.
 
