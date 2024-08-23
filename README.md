@@ -29,7 +29,7 @@ DigitalCash is a modern and secure Mobile Financial Service (MFS) platform desig
 
     ```bash
     git clone https://github.com/joychandrauday/DigiCash-client
-    cd client
+    cd DigiCash-client
     ```
 
 2.  install dependencies
@@ -46,18 +46,17 @@ DigitalCash is a modern and secure Mobile Financial Service (MFS) platform desig
 
 ## available-scripts
 
-    ```bash
     npm run dev /
     npm run build /
     nodemon index.js
-    ```
+
 
 ## environment-variables
 
-    ```bash
+    
     DB_USER=your_mongodb_database_user
     DB_PASS=your_mongodb_database_password
 
     VITE_API_URL= BACKEND_API_MAIN or
     VITE_API_URL=https://digicash-xi.vercel.app
-    ```
+    r
